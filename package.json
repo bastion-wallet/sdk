@@ -1,13 +1,13 @@
 {
 	"name": "@bastion-wallet/sdk",
-	"version": "0.1.25",
+	"version": "0.1.26",
 	"description": "Bastion SDK: A modular, open-source TypeScript SDK for seamless integration of multi-chain wallet functionality. Simplify decentralized app development with unified accounts, built-in multi-signature support, and more. ERC4337-compatible.",
-	"main": "dist/index.js",
-	"module": "dist/index.m.js",
-	"unpkg": "dist/index.umd.js",
+	"source": "src/index.ts",
+	"main": "dist/index.umd.js",
+	"module": "dist/index.modern.module.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"build": "rm -rf dist && microbundle --tsconfig tsconfig.json --no-sourcemap",
+		"build": "rm -rf dist && microbundle --tsconfig tsconfig.json",
 		"test": "jest",
 		"release": "standard-version && git push && npm publish"
 	},
