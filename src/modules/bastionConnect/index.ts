@@ -8,6 +8,7 @@ export interface BastionSignerOptions {
 	privateKey: string;
 	rpcUrl: string;
 	chainId: number;
+	apiKey: string;
 	gasToken?: string;
 	noSponsorship?: boolean;
 }
@@ -29,6 +30,10 @@ export class BastionConnect extends Signer {
 		this.smartWalletInstance = new SmartWallet();
 		this.externalProvider = externalProvider;
 		this.options = options;
+	}
+
+	constructor() {
+		super();
 	}
 
 	async getAddress(): Promise<string> {
