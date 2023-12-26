@@ -6,3 +6,5 @@ export { ECDSAKernelFactory__factory } from "./ECDSAKernelFactory__factory";
 export { ECDSAValidator__factory } from "./ECDSAValidator__factory";
 export { Kernel__factory } from "./Kernel__factory";
 export { KernelFactory__factory } from "./KernelFactory__factory";
+export { Initiator__factory } from "./Initiator__factory";
+export { SubExecutor__factory } from "./SubExecutor__factory";

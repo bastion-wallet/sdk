@@ -6,9 +6,14 @@ export type { ECDSAKernelFactory } from "./ECDSAKernelFactory";
 export type { ECDSAValidator } from "./ECDSAValidator";
 export type { Kernel } from "./Kernel";
 export type { KernelFactory } from "./KernelFactory";
+export type { Initiator } from "./Initiator";
+export type { SubExecutor } from "./SubExecutor";
+
 export * as factories from "./factories";
 export { ECDSAKernelFactory__factory } from "./factories/ECDSAKernelFactory__factory";
 export { KernelFactory__factory } from "./factories/KernelFactory__factory";
 export { Kernel__factory } from "./factories/Kernel__factory";
 export { BatchActions__factory } from "./factories/BatchActions__factory";
 export { ECDSAValidator__factory } from "./factories/ECDSAValidator__factory";
+export { Initiator__factory } from "./factories/Initiator__factory";
+export { SubExecutor__factory } from "./factories/SubExecutor__factory";
