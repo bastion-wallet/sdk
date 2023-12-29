@@ -161,4 +161,32 @@ export class ViemConnect {
 		return this.smartWalletInstance.createSmartAccountDapp(this.options);
 	}
     
+    async initSubscriptionModuleForWallet(initiatorAddress: Address) {
+        return await this.smartWalletInstance.initSubscriptionModuleForWallet(initiatorAddress);
+    }
+
+    async attachSubscriptionModuleToWallet() {
+        return await this.smartWalletInstance.attachSubscriptionModuleToWallet();
+    }
+
+    async createSubscriptionForWallet(amount: string, interval: number, paymentLimit: string, erc20TokenAddress: Address): Promise<string> {
+		const {userOperationHash} = await this.smartWalletInstance.createSubscription(amount, interval, paymentLimit, erc20TokenAddress);
+        return userOperationHash;
+	}
+
+    async modifySubscription(amount: string, interval: number, paymentLimit: string, erc20TokenAddress: Address): Promise<string> {
+		const {userOperationHash} = await this.smartWalletInstance.modifySubscription(amount, interval, paymentLimit, erc20TokenAddress);
+        return userOperationHash;
+	}
+
+    async revokeSubscription(initiator: Address, amount: number, interval:number){
+        const {userOperationHash} = await this.smartWalletInstance.revokeSubscription(initiator, amount, interval);
+        return userOperationHash;
+    };
+
+    async getSubscription(initiator: Address){
+        const subscription= await this.smartWalletInstance.getSubscription(initiator);
+        return subscription;
+    };
+
 }

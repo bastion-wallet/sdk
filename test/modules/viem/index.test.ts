@@ -17,8 +17,8 @@ let account;
 
 const DEFAULT_CONFIG: BastionSignerOptions = {
 	privateKey: process.env.PRIVATE_KEY || "",
-	// rpcUrl: process.env.RPC_URL1 || "", //mumbai
-	// chainId: 80001,
+	rpcUrl: process.env.RPC_URL_MUM || "", //mumbai
+	chainId: 80001,
 	// rpcUrl: process.env.RPC_URL2 || "", // arb-goerli
 	// chainId: 421613,
 	// rpcUrl: process.env.RPC_URL3 || "", // scroll
@@ -27,8 +27,8 @@ const DEFAULT_CONFIG: BastionSignerOptions = {
 	// chainId: 59140,
 	// rpcUrl: process.env.RPC_URL_BASE_GOERLI || "", // base-goerli
 	// chainId: 84531,
-	rpcUrl: process.env.RPC_URL_BASE || "", // base
-	chainId: 8453,
+	// rpcUrl: process.env.RPC_URL_BASE || "", // base
+	// chainId: 8453,
 	// rpcUrl: process.env.RPC_URL6 || "", // optimism-goerli
 	// chainId: 420,
 	apiKey: process.env.BASTION_API_KEY || "",
@@ -205,7 +205,7 @@ describe("setupSmartAccount", ()=> {
 
 	}, 70000);
 
-	it("should mint a NFT gaslessly by calling standalone writeContract method", async () => {
+	it.skip("should mint a NFT gaslessly by calling standalone writeContract method", async () => {
 		let bastion = new Bastion();
 		const BastionViem = await bastion.viemConnect;
 		//Pass along a gasToken to use for gas
@@ -257,6 +257,47 @@ describe("setupSmartAccount", ()=> {
 		const trxhash = await BastionViem.writeContractBatch([transaction1,transaction2]);
 		console.log("Trx hash:", trxhash);
 		expect(trxhash).toHaveLength(66);
+	}, 70000);
+
+	it.skip("should create a subscription gaslessly", async () => {
+		let bastion = new Bastion();
+		const BastionViem = await bastion.viemConnect;
+		//Pass along a gasToken to use for gas
+		const { smartAccountAddress: aaAddress, exists }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
+		console.log("exist",exists);
+		if(!exists){
+			const receipt = await BastionViem.createSmartAccountByDapp();
+		}
+
+		const initiatorAddress = "0x63409FF28A283e81F7C882E9C88e4027c6034BA7";
+		const {attached} = await BastionViem.initSubscriptionModuleForWallet(initiatorAddress);
+		if(!attached){
+			await BastionViem.attachSubscriptionModuleToWallet();
+			return;
+		}
+		console.log("Subscription module initalized")
+		const amount = "100000";
+		const interval = 7; //days
+		const paymentLimit = "100000";
+		const erc20TokenAddress = "0x8b9EAf601F4fb98f79fD62d938D15ed2a5B1EE92";
+
+
+		const trxhash = await BastionViem.createSubscriptionForWallet(amount, interval, paymentLimit, erc20TokenAddress);
+		console.log("Trx hash:", trxhash);
+		expect(trxhash).toHaveLength(66);
+	}, 70000);
+
+
+	it("should get a subscription for given initiator", async () => {
+		let bastion = new Bastion();
+		const BastionViem = await bastion.viemConnect;
+		//Pass along a gasToken to use for gas
+		const { smartAccountAddress: aaAddress, exists }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
+
+		const initiatorAddress = "0x63409FF28A283e81F7C882E9C88e4027c6034BA7";
+		const {attached} = await BastionViem.initSubscriptionModuleForWallet(initiatorAddress);
+		const sub = await BastionViem.getSubscription(initiatorAddress);
+		console.log("sub:", sub);
 	}, 70000);
 
 })

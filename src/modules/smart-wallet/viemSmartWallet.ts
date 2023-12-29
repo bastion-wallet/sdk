@@ -1,5 +1,5 @@
 import * as aaContracts from "@account-abstraction/contracts";
-import { WalletClient, PublicClient, getContract, encodeFunctionData, getFunctionSelector, Chain } from "viem";
+import { WalletClient, PublicClient, getContract, encodeFunctionData, getFunctionSelector, Chain, Address } from "viem";
 import { arbitrumGoerli } from "viem/chains";
 import { Wallet, utils, BigNumber } from "ethers";
 import axios from "axios";
@@ -7,6 +7,7 @@ import { ECDSAKernelFactory__factory, Kernel__factory, BatchActions__factory } f
 import { BastionSignerOptions } from "../bastionConnect";
 import { UserOperationStructViem } from "../viemConnect/type";
 import { getViemChain, mainnetIds } from "../../helper";
+import { Subscription } from "../subscriptions";
 
 export interface SendTransactionResponse {
 	bundler: string;
@@ -26,11 +27,14 @@ export class SmartWalletViem {
 	walletClient:WalletClient;
 	publicClient:PublicClient;
 	chain: Chain;
+	subscription: Subscription;
+	options: BastionSignerOptions;
 
 	async initParams(walletClient: WalletClient, publicClient: PublicClient,  options?: BastionSignerOptions) {
 		this.walletClient = walletClient;
 		this.publicClient = publicClient;
 		this.chain = await getViemChain(options.chainId);
+		this.options = options;
 
         const entryPoint = getContract({
 			address: this.ENTRY_POINT_ADDRESS as `0x${string}`,
@@ -444,5 +448,67 @@ export class SmartWalletViem {
 
 		return smartAccountAddress
 	}
+
+	async initSubscriptionModuleForWallet(initiatorAddress: Address ){
+		try {
+			this.subscription = new Subscription();
+			return await this.subscription.init(initiatorAddress, this, this.options);
+		} catch (error) {
+			throw new Error(`initSubscriptionModuleForWallet: ${error}`);
+		}
+		
+	}
+
+	async attachSubscriptionModuleToWallet(){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.attachSubExecutorToSmartWallet();
+		} catch (error) {
+			throw new Error(`attachSubscriptionModuleToWallet: ${error}`);
+		}
+		
+	}
+
+	async createSubscription(amount: string, interval: number, paymentLimit: string, erc20TokenAddress: Address){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.createSubscription(amount, interval, paymentLimit, erc20TokenAddress);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::createSubscription: ${error}`);
+		}
+	}
+
+	async modifySubscription(amount: string, interval: number, paymentLimit: string, erc20TokenAddress: Address){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.modifySubscription(amount, interval, paymentLimit, erc20TokenAddress);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::modifySubscription: ${error}`);
+		}
+	}
+
+	async revokeSubscription(initiator: Address, amount: number, interval:number){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.revokeSubscription(initiator, amount, interval);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::revokeSubscription: ${error}`);
+		}
+	}
+
+	async getSubscription(initiator: Address){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.getSubscription(initiator);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::getSubscription: ${error}`);
+		}
+	}
+
+	
 }
 
