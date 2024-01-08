@@ -17,7 +17,7 @@ export class SmartWallet {
 	ENTRY_POINT_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 	BATCH_ACTIONS_EXECUTOR = "0xaEA978bAa9357C7d2B3B2D243621B94ce3d5793F";
 	VALIDATOR_ADDRESS = "0x180D6465F921C7E0DEA0040107D342c87455fFF5";
-	BASE_API_URL = "https://api.bastionwallet.io";
+	BASE_API_URL = "http://localhost:3000";
 	SALT = 0;
 
 	async initParams(externalProvider: JsonRpcProvider, options?: BastionSignerOptions) {

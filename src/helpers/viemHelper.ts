@@ -9,7 +9,7 @@ import { createDummyTransactionReceipt } from "../helper";
 import { SmartWalletViem } from "../modules/smart-wallet/viemSmartWallet";
 import { UserOperationStructViem } from "src/modules/viemConnect/type";
 
-const BASE_API_URL = "https://api.bastionwallet.io";
+const BASE_API_URL = "http://localhost:3000";
 const ENTRY_POINT_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 
 let options: BastionSignerOptions;

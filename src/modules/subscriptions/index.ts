@@ -4,12 +4,12 @@ import * as aaContracts from "@account-abstraction/contracts";
 import { SubExecutor__factory, Initiator__factory, Kernel__factory, BatchActions__factory } from "../smart-wallet/contracts";
 import { SmartWalletViem } from "../smart-wallet/viemSmartWallet";
 import { BastionSignerOptions } from "../bastionConnect";
-import { utils } from "ethers";
+import { ethers, utils } from "ethers";
 import { UserOperationStructViem } from "bastion-wallet-web-sdk/dist/modules/viemConnect/type";
 
 export class Subscription {
 
-    SUB_EXECUTOR_ADDRESS:  `0x${string}` = "0x5Bb75b2A5f1E1a584308059523ED2A763d25178B";
+    SUB_EXECUTOR_ADDRESS:  `0x${string}` = "0xD872A6834F12ebf66a0B28bab77442Dc423f0304";
 
     smartAccountAddress: Address;
     initiatorAddress: Address;
@@ -199,11 +199,11 @@ export class Subscription {
             const isAttached = await this.checkSubExecutorAttached();
             if(!isAttached) throw new Error("Subscription executor not attached to smart wallet");
             const subscription = await this.publicClient.readContract({
-                address: this.SUB_EXECUTOR_ADDRESS,
+                address: this.smartAccountAddress,
                 abi: SubExecutor__factory.abi,
-                functionName: 'getSubscription',
+                functionName: "getSubscription",
                 args: [initiator]
-              })
+            })
 
             console.log("subscription",subscription);
             return subscription;

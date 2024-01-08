@@ -17,11 +17,11 @@ export interface SendTransactionResponse {
 }
 
 export class SmartWalletViem {
-	ECDSAKernelFactory_Address: `0x${string}` = "0xf7d5E0c8bDC24807c8793507a2aF586514f4c46e";
+	ECDSAKernelFactory_Address: `0x${string}` = "0xF193603632f385b8736ed97de057f87E9A1c318b" //"0xf7d5E0c8bDC24807c8793507a2aF586514f4c46e";
 	ENTRY_POINT_ADDRESS: `0x${string}` = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 	BATCH_ACTIONS_EXECUTOR: `0x${string}` = "0xaEA978bAa9357C7d2B3B2D243621B94ce3d5793F";
 	VALIDATOR_ADDRESS: `0x${string}` = "0x180D6465F921C7E0DEA0040107D342c87455fFF5";
-	BASE_API_URL = "https://api.bastionwallet.io";
+	BASE_API_URL = "http://localhost:3000";
 	SALT = 0;
 
 	walletClient:WalletClient;

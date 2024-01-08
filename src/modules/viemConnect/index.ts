@@ -18,7 +18,7 @@ export interface BastionViemOptions {
 
 export class ViemConnect {
 
-    private BASE_API_URL = "https://api.bastionwallet.io";
+    private BASE_API_URL = "http://localhost:3000";
 	private smartWalletInstance: SmartWalletViem;
     private options: BastionViemOptions;
     private publicClient : PublicClient;

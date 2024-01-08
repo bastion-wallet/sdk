@@ -22,7 +22,7 @@ export interface BasicTransaction {
 }
 
 export class BastionConnect extends Signer {
-	private BASE_API_URL = "https://api.bastionwallet.io";
+	private BASE_API_URL = "http://localhost:3000";
 
 	private signer: Signer;
 	private address: string;
