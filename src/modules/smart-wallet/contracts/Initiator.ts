@@ -33,7 +33,6 @@ export declare namespace ISubExecutor {
     validUntil: PromiseOrValue<BigNumberish>;
     validAfter: PromiseOrValue<BigNumberish>;
     paymentInterval: PromiseOrValue<BigNumberish>;
-    paymentLimit: PromiseOrValue<BigNumberish>;
     subscriber: PromiseOrValue<string>;
     initiator: PromiseOrValue<string>;
     erc20TokensValid: PromiseOrValue<boolean>;
@@ -41,7 +40,6 @@ export declare namespace ISubExecutor {
   };
 
   export type SubStorageStructOutput = [
-    BigNumber,
     BigNumber,
     BigNumber,
     BigNumber,
@@ -55,7 +53,6 @@ export declare namespace ISubExecutor {
     validUntil: BigNumber;
     validAfter: BigNumber;
     paymentInterval: BigNumber;
-    paymentLimit: BigNumber;
     subscriber: string;
     initiator: string;
     erc20TokensValid: boolean;
@@ -65,35 +62,47 @@ export declare namespace ISubExecutor {
 
 export interface InitiatorInterface extends utils.Interface {
   functions: {
-    "getSubscriptions()": FunctionFragment;
-    "initiatePayment()": FunctionFragment;
+    "getSubscribers()": FunctionFragment;
+    "getSubscription(address)": FunctionFragment;
+    "initiatePayment(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "registerSubscription(address,uint256,uint256,uint256,address)": FunctionFragment;
     "removeSubscription(address)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "subscriptions(uint256)": FunctionFragment;
+    "subscribers(uint256)": FunctionFragment;
+    "subscriptionBySubscriber(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
+    "withdrawERC20(address)": FunctionFragment;
+    "withdrawETH()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "getSubscriptions"
+      | "getSubscribers"
+      | "getSubscription"
       | "initiatePayment"
       | "owner"
       | "registerSubscription"
       | "removeSubscription"
       | "renounceOwnership"
-      | "subscriptions"
+      | "subscribers"
+      | "subscriptionBySubscriber"
       | "transferOwnership"
+      | "withdrawERC20"
+      | "withdrawETH"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "getSubscriptions",
+    functionFragment: "getSubscribers",
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getSubscription",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "initiatePayment",
-    values?: undefined
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -115,16 +124,32 @@ export interface InitiatorInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "subscriptions",
+    functionFragment: "subscribers",
     values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "subscriptionBySubscriber",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [PromiseOrValue<string>]
   ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawERC20",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawETH",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(
-    functionFragment: "getSubscriptions",
+    functionFragment: "getSubscribers",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getSubscription",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -145,11 +170,23 @@ export interface InitiatorInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "subscriptions",
+    functionFragment: "subscribers",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "subscriptionBySubscriber",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawERC20",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawETH",
     data: BytesLike
   ): Result;
 
@@ -199,11 +236,15 @@ export interface Initiator extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    getSubscriptions(
+    getSubscribers(overrides?: CallOverrides): Promise<[string[]]>;
+
+    getSubscription(
+      _subscriber: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<[ISubExecutor.SubStorageStructOutput[]]>;
+    ): Promise<[ISubExecutor.SubStorageStructOutput]>;
 
     initiatePayment(
+      _subscriber: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -212,8 +253,8 @@ export interface Initiator extends BaseContract {
     registerSubscription(
       _subscriber: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _paymentInterval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -227,12 +268,16 @@ export interface Initiator extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    subscriptions(
+    subscribers(
       arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    subscriptionBySubscriber(
+      arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
       [
-        BigNumber,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -246,7 +291,6 @@ export interface Initiator extends BaseContract {
         validUntil: BigNumber;
         validAfter: BigNumber;
         paymentInterval: BigNumber;
-        paymentLimit: BigNumber;
         subscriber: string;
         initiator: string;
         erc20TokensValid: boolean;
@@ -258,13 +302,26 @@ export interface Initiator extends BaseContract {
       newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+
+    withdrawERC20(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawETH(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
   };
 
-  getSubscriptions(
+  getSubscribers(overrides?: CallOverrides): Promise<string[]>;
+
+  getSubscription(
+    _subscriber: PromiseOrValue<string>,
     overrides?: CallOverrides
-  ): Promise<ISubExecutor.SubStorageStructOutput[]>;
+  ): Promise<ISubExecutor.SubStorageStructOutput>;
 
   initiatePayment(
+    _subscriber: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -273,8 +330,8 @@ export interface Initiator extends BaseContract {
   registerSubscription(
     _subscriber: PromiseOrValue<string>,
     _amount: PromiseOrValue<BigNumberish>,
+    _validUntil: PromiseOrValue<BigNumberish>,
     _paymentInterval: PromiseOrValue<BigNumberish>,
-    _paymentLimit: PromiseOrValue<BigNumberish>,
     _erc20Token: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -288,12 +345,16 @@ export interface Initiator extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  subscriptions(
+  subscribers(
     arg0: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  subscriptionBySubscriber(
+    arg0: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<
     [
-      BigNumber,
       BigNumber,
       BigNumber,
       BigNumber,
@@ -307,7 +368,6 @@ export interface Initiator extends BaseContract {
       validUntil: BigNumber;
       validAfter: BigNumber;
       paymentInterval: BigNumber;
-      paymentLimit: BigNumber;
       subscriber: string;
       initiator: string;
       erc20TokensValid: boolean;
@@ -320,20 +380,35 @@ export interface Initiator extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  callStatic: {
-    getSubscriptions(
-      overrides?: CallOverrides
-    ): Promise<ISubExecutor.SubStorageStructOutput[]>;
+  withdrawERC20(
+    _token: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
-    initiatePayment(overrides?: CallOverrides): Promise<void>;
+  withdrawETH(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  callStatic: {
+    getSubscribers(overrides?: CallOverrides): Promise<string[]>;
+
+    getSubscription(
+      _subscriber: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<ISubExecutor.SubStorageStructOutput>;
+
+    initiatePayment(
+      _subscriber: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
     registerSubscription(
       _subscriber: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _paymentInterval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -345,12 +420,16 @@ export interface Initiator extends BaseContract {
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
-    subscriptions(
+    subscribers(
       arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    subscriptionBySubscriber(
+      arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
       [
-        BigNumber,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -364,7 +443,6 @@ export interface Initiator extends BaseContract {
         validUntil: BigNumber;
         validAfter: BigNumber;
         paymentInterval: BigNumber;
-        paymentLimit: BigNumber;
         subscriber: string;
         initiator: string;
         erc20TokensValid: boolean;
@@ -376,6 +454,13 @@ export interface Initiator extends BaseContract {
       newOwner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    withdrawERC20(
+      _token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawETH(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -390,9 +475,15 @@ export interface Initiator extends BaseContract {
   };
 
   estimateGas: {
-    getSubscriptions(overrides?: CallOverrides): Promise<BigNumber>;
+    getSubscribers(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getSubscription(
+      _subscriber: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     initiatePayment(
+      _subscriber: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -401,8 +492,8 @@ export interface Initiator extends BaseContract {
     registerSubscription(
       _subscriber: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _paymentInterval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -416,8 +507,13 @@ export interface Initiator extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    subscriptions(
+    subscribers(
       arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    subscriptionBySubscriber(
+      arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -425,12 +521,27 @@ export interface Initiator extends BaseContract {
       newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
+
+    withdrawERC20(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawETH(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    getSubscriptions(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getSubscribers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getSubscription(
+      _subscriber: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     initiatePayment(
+      _subscriber: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -439,8 +550,8 @@ export interface Initiator extends BaseContract {
     registerSubscription(
       _subscriber: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _paymentInterval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -454,13 +565,27 @@ export interface Initiator extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    subscriptions(
+    subscribers(
       arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    subscriptionBySubscriber(
+      arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawERC20(
+      _token: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawETH(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

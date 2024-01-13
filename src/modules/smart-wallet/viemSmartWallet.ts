@@ -17,7 +17,7 @@ export interface SendTransactionResponse {
 }
 
 export class SmartWalletViem {
-	ECDSAKernelFactory_Address: `0x${string}` = "0xF193603632f385b8736ed97de057f87E9A1c318b" //"0xf7d5E0c8bDC24807c8793507a2aF586514f4c46e";
+	ECDSAKernelFactory_Address: `0x${string}` = "0x6686fFce97aF9B436586BD120e333A911dFe8AAd" //"0xf7d5E0c8bDC24807c8793507a2aF586514f4c46e";
 	ENTRY_POINT_ADDRESS: `0x${string}` = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 	BATCH_ACTIONS_EXECUTOR: `0x${string}` = "0xaEA978bAa9357C7d2B3B2D243621B94ce3d5793F";
 	VALIDATOR_ADDRESS: `0x${string}` = "0x180D6465F921C7E0DEA0040107D342c87455fFF5";
@@ -211,7 +211,7 @@ export class SmartWalletViem {
 	async prepareBatchTransaction(publicClient: PublicClient, walletClient: WalletClient, to: `0x${string}`[], data: `0x${string}`[], value:readonly bigint[], options?: BastionSignerOptions): Promise<aaContracts.UserOperationStruct> {
 		const { smartAccountAddress, entryPoint, clientAddress, exists } = await this.initParams(walletClient, publicClient, options);
 		if(!exists) throw new Error("smart account doesn't exist, please create smart account first");
-		
+		console.log("to", to ,value, data);
 		const batchActions = getContract({
 			address: smartAccountAddress,
 			abi: BatchActions__factory.abi,
@@ -230,7 +230,6 @@ export class SmartWalletViem {
 		// Check if the smart account contract has been deployed and setExecution has been called
 		const smartWalletDeployed = await this.initSmartAccount(smartAccountAddress, clientAddress, options.chainId, options.apiKey);
 		await this.checkExecutionSet(publicClient, walletClient, options);
-
 		let nonce;
 		if (!smartWalletDeployed) {
 			nonce = 0;
@@ -469,30 +468,30 @@ export class SmartWalletViem {
 		
 	}
 
-	async createSubscription(amount: string, interval: number, paymentLimit: string, erc20TokenAddress: Address){
+	async createSubscription(amount: string, interval: number, validUntil:number, erc20TokenAddress: Address){
 		try {
 			if(!this.subscription) throw new Error("subscription module not initalised");
-			return await this.subscription.createSubscription(amount, interval, paymentLimit, erc20TokenAddress);
+			return await this.subscription.createSubscription(amount, interval, validUntil, erc20TokenAddress);
 		} catch (error) {
 			console.log("error", error);
 			throw new Error(`Error::createSubscription: ${error}`);
 		}
 	}
 
-	async modifySubscription(amount: string, interval: number, paymentLimit: string, erc20TokenAddress: Address){
+	async modifySubscription(amount: string, interval: number, validUntil:number, erc20TokenAddress: Address){
 		try {
 			if(!this.subscription) throw new Error("subscription module not initalised");
-			return await this.subscription.modifySubscription(amount, interval, paymentLimit, erc20TokenAddress);
+			return await this.subscription.modifySubscription(amount, interval,validUntil, erc20TokenAddress);
 		} catch (error) {
 			console.log("error", error);
 			throw new Error(`Error::modifySubscription: ${error}`);
 		}
 	}
 
-	async revokeSubscription(initiator: Address, amount: number, interval:number){
+	async revokeSubscription(){
 		try {
 			if(!this.subscription) throw new Error("subscription module not initalised");
-			return await this.subscription.revokeSubscription(initiator, amount, interval);
+			return await this.subscription.revokeSubscription();
 		} catch (error) {
 			console.log("error", error);
 			throw new Error(`Error::revokeSubscription: ${error}`);
@@ -509,6 +508,35 @@ export class SmartWalletViem {
 		}
 	}
 
+	async getPaymentHistory(initiator: Address){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.getPaymentHistory(initiator);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::getPaymentHistory: ${error}`);
+		}
+	}
+
+	async getLastPaidTimestamp(initiator: Address){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.getLastPaidTimestamp(initiator);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::getLastPaidTimestamp: ${error}`);
+		}
+	}
+
+	async initiatePayment(){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.initiatePayment();
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::initiatePayment: ${error}`);
+		}
+	}
 	
 }
 

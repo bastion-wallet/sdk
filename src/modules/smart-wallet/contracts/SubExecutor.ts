@@ -44,7 +44,6 @@ export type SubStorageStruct = {
   validUntil: PromiseOrValue<BigNumberish>;
   validAfter: PromiseOrValue<BigNumberish>;
   paymentInterval: PromiseOrValue<BigNumberish>;
-  paymentLimit: PromiseOrValue<BigNumberish>;
   subscriber: PromiseOrValue<string>;
   initiator: PromiseOrValue<string>;
   erc20TokensValid: PromiseOrValue<boolean>;
@@ -52,7 +51,6 @@ export type SubStorageStruct = {
 };
 
 export type SubStorageStructOutput = [
-  BigNumber,
   BigNumber,
   BigNumber,
   BigNumber,
@@ -66,7 +64,6 @@ export type SubStorageStructOutput = [
   validUntil: BigNumber;
   validAfter: BigNumber;
   paymentInterval: BigNumber;
-  paymentLimit: BigNumber;
   subscriber: string;
   initiator: string;
   erc20TokensValid: boolean;
@@ -81,9 +78,7 @@ export interface SubExecutorInterface extends utils.Interface {
     "getSubscription(address)": FunctionFragment;
     "modifySubscription(address,uint256,uint256,uint256,address)": FunctionFragment;
     "processPayment()": FunctionFragment;
-    "revokeSubscription(address,uint256,uint256)": FunctionFragment;
-    "updateAllowance(uint256)": FunctionFragment;
-    "withdrawERC20Tokens(address)": FunctionFragment;
+    "revokeSubscription(address)": FunctionFragment;
   };
 
   getFunction(
@@ -95,8 +90,6 @@ export interface SubExecutorInterface extends utils.Interface {
       | "modifySubscription"
       | "processPayment"
       | "revokeSubscription"
-      | "updateAllowance"
-      | "withdrawERC20Tokens"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -137,18 +130,6 @@ export interface SubExecutorInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "revokeSubscription",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updateAllowance",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawERC20Tokens",
     values: [PromiseOrValue<string>]
   ): string;
 
@@ -180,26 +161,18 @@ export interface SubExecutorInterface extends utils.Interface {
     functionFragment: "revokeSubscription",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateAllowance",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawERC20Tokens",
-    data: BytesLike
-  ): Result;
 
   events: {
     "paymentProcessed(address,uint256)": EventFragment;
-    "preApproval(address,uint256)": EventFragment;
     "revokedApproval(address)": EventFragment;
     "subscriptionCreated(address,address,uint256)": EventFragment;
+    "subscriptionModified(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "paymentProcessed"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "preApproval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "revokedApproval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "subscriptionCreated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "subscriptionModified"): EventFragment;
 }
 
 export interface paymentProcessedEventObject {
@@ -213,17 +186,6 @@ export type paymentProcessedEvent = TypedEvent<
 
 export type paymentProcessedEventFilter =
   TypedEventFilter<paymentProcessedEvent>;
-
-export interface preApprovalEventObject {
-  _subscriber: string;
-  _amount: BigNumber;
-}
-export type preApprovalEvent = TypedEvent<
-  [string, BigNumber],
-  preApprovalEventObject
->;
-
-export type preApprovalEventFilter = TypedEventFilter<preApprovalEvent>;
 
 export interface revokedApprovalEventObject {
   _subscriber: string;
@@ -247,6 +209,19 @@ export type subscriptionCreatedEvent = TypedEvent<
 
 export type subscriptionCreatedEventFilter =
   TypedEventFilter<subscriptionCreatedEvent>;
+
+export interface subscriptionModifiedEventObject {
+  _initiator: string;
+  _subscriber: string;
+  _amount: BigNumber;
+}
+export type subscriptionModifiedEvent = TypedEvent<
+  [string, string, BigNumber],
+  subscriptionModifiedEventObject
+>;
+
+export type subscriptionModifiedEventFilter =
+  TypedEventFilter<subscriptionModifiedEvent>;
 
 export interface SubExecutor extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -279,7 +254,7 @@ export interface SubExecutor extends BaseContract {
       _initiator: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
       _interval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -303,7 +278,7 @@ export interface SubExecutor extends BaseContract {
       _initiator: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
       _interval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -314,18 +289,6 @@ export interface SubExecutor extends BaseContract {
 
     revokeSubscription(
       _initiator: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _interval: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    updateAllowance(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawERC20Tokens(
-      _tokenAddress: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
@@ -334,7 +297,7 @@ export interface SubExecutor extends BaseContract {
     _initiator: PromiseOrValue<string>,
     _amount: PromiseOrValue<BigNumberish>,
     _interval: PromiseOrValue<BigNumberish>,
-    _paymentLimit: PromiseOrValue<BigNumberish>,
+    _validUntil: PromiseOrValue<BigNumberish>,
     _erc20Token: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -358,7 +321,7 @@ export interface SubExecutor extends BaseContract {
     _initiator: PromiseOrValue<string>,
     _amount: PromiseOrValue<BigNumberish>,
     _interval: PromiseOrValue<BigNumberish>,
-    _paymentLimit: PromiseOrValue<BigNumberish>,
+    _validUntil: PromiseOrValue<BigNumberish>,
     _erc20Token: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -369,18 +332,6 @@ export interface SubExecutor extends BaseContract {
 
   revokeSubscription(
     _initiator: PromiseOrValue<string>,
-    _amount: PromiseOrValue<BigNumberish>,
-    _interval: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  updateAllowance(
-    _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawERC20Tokens(
-    _tokenAddress: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -389,7 +340,7 @@ export interface SubExecutor extends BaseContract {
       _initiator: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
       _interval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -413,7 +364,7 @@ export interface SubExecutor extends BaseContract {
       _initiator: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
       _interval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -422,18 +373,6 @@ export interface SubExecutor extends BaseContract {
 
     revokeSubscription(
       _initiator: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _interval: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    updateAllowance(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    withdrawERC20Tokens(
-      _tokenAddress: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -447,15 +386,6 @@ export interface SubExecutor extends BaseContract {
       _subscriber?: PromiseOrValue<string> | null,
       _amount?: null
     ): paymentProcessedEventFilter;
-
-    "preApproval(address,uint256)"(
-      _subscriber?: PromiseOrValue<string> | null,
-      _amount?: null
-    ): preApprovalEventFilter;
-    preApproval(
-      _subscriber?: PromiseOrValue<string> | null,
-      _amount?: null
-    ): preApprovalEventFilter;
 
     "revokedApproval(address)"(
       _subscriber?: PromiseOrValue<string> | null
@@ -474,6 +404,17 @@ export interface SubExecutor extends BaseContract {
       _subscriber?: PromiseOrValue<string> | null,
       _amount?: null
     ): subscriptionCreatedEventFilter;
+
+    "subscriptionModified(address,address,uint256)"(
+      _initiator?: PromiseOrValue<string> | null,
+      _subscriber?: PromiseOrValue<string> | null,
+      _amount?: null
+    ): subscriptionModifiedEventFilter;
+    subscriptionModified(
+      _initiator?: PromiseOrValue<string> | null,
+      _subscriber?: PromiseOrValue<string> | null,
+      _amount?: null
+    ): subscriptionModifiedEventFilter;
   };
 
   estimateGas: {
@@ -481,7 +422,7 @@ export interface SubExecutor extends BaseContract {
       _initiator: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
       _interval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -505,7 +446,7 @@ export interface SubExecutor extends BaseContract {
       _initiator: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
       _interval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -516,18 +457,6 @@ export interface SubExecutor extends BaseContract {
 
     revokeSubscription(
       _initiator: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _interval: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    updateAllowance(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawERC20Tokens(
-      _tokenAddress: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
@@ -537,7 +466,7 @@ export interface SubExecutor extends BaseContract {
       _initiator: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
       _interval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -561,7 +490,7 @@ export interface SubExecutor extends BaseContract {
       _initiator: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
       _interval: PromiseOrValue<BigNumberish>,
-      _paymentLimit: PromiseOrValue<BigNumberish>,
+      _validUntil: PromiseOrValue<BigNumberish>,
       _erc20Token: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -572,18 +501,6 @@ export interface SubExecutor extends BaseContract {
 
     revokeSubscription(
       _initiator: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _interval: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    updateAllowance(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawERC20Tokens(
-      _tokenAddress: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

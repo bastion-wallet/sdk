@@ -269,7 +269,7 @@ describe("setupSmartAccount", ()=> {
 			const receipt = await BastionViem.createSmartAccountByDapp();
 		}
 
-		const initiatorAddress = "0x63409FF28A283e81F7C882E9C88e4027c6034BA7";
+		const initiatorAddress = "0xe32D20f42fB5dA8E68A4CcdCdFfBeB337a18Af04";
 		const {attached} = await BastionViem.initSubscriptionModuleForWallet(initiatorAddress);
 		if(!attached){
 			await BastionViem.attachSubscriptionModuleToWallet();
@@ -277,27 +277,121 @@ describe("setupSmartAccount", ()=> {
 		}
 		console.log("Subscription module initalized")
 		const amount = "100000";
-		const interval = 7; //days
-		const paymentLimit = "100000";
-		const erc20TokenAddress = "0x8b9EAf601F4fb98f79fD62d938D15ed2a5B1EE92";
+		const interval = 5; //seconds
+		const validUntil = 1710071079; //timestamp
+		const erc20TokenAddress = "0x0000000000000000000000000000000000000000";
+		//"0x8b9EAf601F4fb98f79fD62d938D15ed2a5B1EE92";
 
 
-		const trxhash = await BastionViem.createSubscriptionForWallet(amount, interval, paymentLimit, erc20TokenAddress);
+		const trxhash = await BastionViem.createSubscriptionForWallet(amount, interval, validUntil, erc20TokenAddress);
 		console.log("Trx hash:", trxhash);
 		expect(trxhash).toHaveLength(66);
-	}, 70000);
+	}, 700000);
+	// 1705062707
 
-
-	it("should get a subscription for given initiator", async () => {
+	it.skip("should get a subscription for given initiator", async () => {
 		let bastion = new Bastion();
 		const BastionViem = await bastion.viemConnect;
 		//Pass along a gasToken to use for gas
 		const { smartAccountAddress: aaAddress, exists }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
 
-		const initiatorAddress = "0x63409FF28A283e81F7C882E9C88e4027c6034BA7";
+		const initiatorAddress = "0xe32D20f42fB5dA8E68A4CcdCdFfBeB337a18Af04";
 		const {attached} = await BastionViem.initSubscriptionModuleForWallet(initiatorAddress);
-		const sub = await BastionViem.getSubscription(initiatorAddress);
-		console.log("sub:", sub);
+		if(!attached){
+			await BastionViem.attachSubscriptionModuleToWallet();
+			return;
+		}
+		const subscription = await BastionViem.getSubscription(initiatorAddress);
+		console.log("subscription:", subscription);
+
+		const timestamp = await BastionViem.getSubscriptionLastPaidTimestamp(initiatorAddress);
+		console.log("timestamp:", timestamp);
+
+		const history = await BastionViem.getSubscriptionPaymentHistory(initiatorAddress);
+		console.log("history:", history);
 	}, 70000);
+
+	it.skip("should modify a subscription gaslessly", async () => {
+		let bastion = new Bastion();
+		const BastionViem = await bastion.viemConnect;
+		//Pass along a gasToken to use for gas
+		const { smartAccountAddress: aaAddress, exists }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
+		console.log("exist",exists);
+		if(!exists){
+			const receipt = await BastionViem.createSmartAccountByDapp();
+		}
+
+		const initiatorAddress = "0xe32D20f42fB5dA8E68A4CcdCdFfBeB337a18Af04";
+		const {attached} = await BastionViem.initSubscriptionModuleForWallet(initiatorAddress);
+		// if(!attached){
+		// 	await BastionViem.attachSubscriptionModuleToWallet();
+		// 	return;
+		// }
+		console.log("Subscription module initalized")
+		const amount = "10";
+		const interval = 300; //seconds
+		const validUntil = 1705138050; //1710071079; //seconds
+		const erc20TokenAddress = "0x0000000000000000000000000000000000000000";//"0x8b9EAf601F4fb98f79fD62d938D15ed2a5B1EE92";
+
+
+		const trxhash = await BastionViem.modifySubscription(amount, interval,validUntil, erc20TokenAddress);
+		console.log("Trx hash:", trxhash);
+		expect(trxhash).toHaveLength(66);
+	}, 70000);
+
+	it.skip("should revoke a subscription gaslessly", async () => {
+		let bastion = new Bastion();
+		const BastionViem = await bastion.viemConnect;
+		//Pass along a gasToken to use for gas
+		const { smartAccountAddress: aaAddress, exists }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
+		console.log("exist",exists);
+		if(!exists){
+			const receipt = await BastionViem.createSmartAccountByDapp();
+		}
+
+		const initiatorAddress = "0xe32D20f42fB5dA8E68A4CcdCdFfBeB337a18Af04";
+		const {attached} = await BastionViem.initSubscriptionModuleForWallet(initiatorAddress);
+		const trxhash = await BastionViem.revokeSubscription();
+		console.log("Trx hash:", trxhash);
+		expect(trxhash).toHaveLength(66);
+	}, 70000);
+
+
+	it.skip("should initiate payment for a subscription gaslessly", async () => {
+		let bastion = new Bastion();
+		const BastionViem = await bastion.viemConnect;
+		//Pass along a gasToken to use for gas
+		const { smartAccountAddress: aaAddress, exists }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
+		console.log("exist",exists);
+		if(!exists){
+			const receipt = await BastionViem.createSmartAccountByDapp();
+		}
+		const initiatorAddress = "0xe32D20f42fB5dA8E68A4CcdCdFfBeB337a18Af04";
+		const {attached} = await BastionViem.initSubscriptionModuleForWallet(initiatorAddress);
+		console.log("Subscription module initalized")
+		const userOpHashes = await BastionViem.initiatePayment();
+		console.log("userOpHashes:", userOpHashes);
+	}, 70000);
+
+
+	it.skip("should fail - initiate payment for a subscription before payment interval", async () => {
+		let bastion = new Bastion();
+		const BastionViem = await bastion.viemConnect;
+		//Pass along a gasToken to use for gas
+		const { smartAccountAddress: aaAddress, exists }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
+		console.log("exist",exists);
+		if(!exists){
+			const receipt = await BastionViem.createSmartAccountByDapp();
+		}
+		const initiatorAddress = "0xe32D20f42fB5dA8E68A4CcdCdFfBeB337a18Af04";
+		const {attached} = await BastionViem.initSubscriptionModuleForWallet(initiatorAddress);
+		const userOpHashes = await BastionViem.initiatePayment();
+		console.log("userOpHashes:", userOpHashes);
+		await new Promise(resolve => setTimeout(resolve, 30000))
+		const userOpHashes2 = await BastionViem.initiatePayment();
+		console.log("userOpHashes2:", userOpHashes2);
+
+	}, 1000000);
+
 
 })

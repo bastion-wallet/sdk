@@ -169,24 +169,39 @@ export class ViemConnect {
         return await this.smartWalletInstance.attachSubscriptionModuleToWallet();
     }
 
-    async createSubscriptionForWallet(amount: string, interval: number, paymentLimit: string, erc20TokenAddress: Address): Promise<string> {
-		const {userOperationHash} = await this.smartWalletInstance.createSubscription(amount, interval, paymentLimit, erc20TokenAddress);
+    async createSubscriptionForWallet(amount: string, interval: number,validUntil:number,  erc20TokenAddress: Address): Promise<string> {
+		const {userOperationHash} = await this.smartWalletInstance.createSubscription(amount, interval,validUntil, erc20TokenAddress);
         return userOperationHash;
 	}
 
-    async modifySubscription(amount: string, interval: number, paymentLimit: string, erc20TokenAddress: Address): Promise<string> {
-		const {userOperationHash} = await this.smartWalletInstance.modifySubscription(amount, interval, paymentLimit, erc20TokenAddress);
+    async modifySubscription(amount: string, interval: number, validUntil:number, erc20TokenAddress: Address): Promise<string> {
+		const {userOperationHash} = await this.smartWalletInstance.modifySubscription(amount, interval,validUntil, erc20TokenAddress);
         return userOperationHash;
 	}
 
-    async revokeSubscription(initiator: Address, amount: number, interval:number){
-        const {userOperationHash} = await this.smartWalletInstance.revokeSubscription(initiator, amount, interval);
+    async revokeSubscription(){
+        const {userOperationHash} = await this.smartWalletInstance.revokeSubscription();
         return userOperationHash;
     };
 
     async getSubscription(initiator: Address){
         const subscription= await this.smartWalletInstance.getSubscription(initiator);
         return subscription;
+    };
+
+    async getSubscriptionLastPaidTimestamp(initiator: Address){
+        const timestamp= await this.smartWalletInstance.getLastPaidTimestamp(initiator);
+        return timestamp;
+    };
+
+    async getSubscriptionPaymentHistory(initiator: Address){
+        const payHistory= await this.smartWalletInstance.getPaymentHistory(initiator);
+        return payHistory;
+    };
+
+    async initiatePayment(){
+        const userOpHash = await this.smartWalletInstance.initiatePayment();
+        return userOpHash;
     };
 
 }
