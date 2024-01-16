@@ -10,7 +10,7 @@ import { erc20ABI } from "../smart-wallet/contracts/ABIs/ERC20_ABI";
 
 export class Subscription {
 
-    SUB_EXECUTOR_ADDRESS:  `0x${string}` = "0x6a2F7109C9c5008AB188d571826101B2840F6fF4";
+    SUB_EXECUTOR_ADDRESS:  `0x${string}` = "0x5F85621D7f78609784FDeFBc6fDd5A8b183C5C76";
 
     smartAccountAddress: Address;
     initiatorAddress: Address;
