@@ -5,7 +5,7 @@ import { SubExecutor__factory, Initiator__factory, Kernel__factory, BatchActions
 import { SmartWalletViem } from "../smart-wallet/viemSmartWallet";
 import { BastionSignerOptions } from "../bastionConnect";
 import { ethers, utils } from "ethers";
-import { UserOperationStructViem } from "bastion-wallet-web-sdk/dist/modules/viemConnect/type";
+import { UserOperationStructViem } from "../viemConnect/type";
 import { erc20ABI } from "../smart-wallet/contracts/ABIs/ERC20_ABI";
 
 export class Subscription {
@@ -107,47 +107,6 @@ export class Subscription {
       
     }
 
-    async attachSubExecutorToSmartWallet_old(){
-        try {
-            const attached = await this.checkSubExecutorAttached();
-            if(attached) { return true;}
-            const validUntil = 1893456000;
-            const block = await this.publicClient.getBlock();
-            const timestamp = block.timestamp;
-            const validAfter = timestamp;
-            const owner = this.walletClient.account.address;
-            const ownerSliced = owner.slice(2).padStart(40, "0");
-            const packedData = utils.hexlify(utils.arrayify("0x" + ownerSliced)) as `0x${string}`;
-
-            const kernelAccount = getContract({
-                address: this.smartAccountAddress,
-                abi: Kernel__factory.abi,
-                publicClient: this.publicClient,
-                walletClient: this.walletClient
-            })
-            const subExecutorInterface = new utils.Interface(["function createSubscription(address _initiator,uint256 _amount,uint256 _interval,uint256 _paymentLimit,address _erc20Token) external"]);
-            const funcSignature = (subExecutorInterface.getSighash("createSubscription(address,uint256,uint256,uint256,address)")) as `0x${string}`;
-    
-            const setExecutionCallData = encodeFunctionData({
-                abi: kernelAccount.abi,
-                functionName: "setExecution",
-                args: [
-                    funcSignature,
-                    this.SUB_EXECUTOR_ADDRESS,
-                    this.smartWallet.VALIDATOR_ADDRESS,
-                    validUntil,
-                    validAfter,
-                    packedData,
-                ]
-            })
-            const useropTrx = await this.sendUserOperation(setExecutionCallData);
-            console.log("useropTrx",useropTrx.userOperationHash);
-            return useropTrx;
-        } catch (error) {
-            console.log("attachSubExecutorToSmartWallet:error", error);
-            throw new Error("attachSubExecutorToSmartWallet:",error);
-        }
-    };
 
     async attachSubExecutorToSmartWallet(){
         try {
@@ -186,10 +145,6 @@ export class Subscription {
             const payHistoryInterface = new utils.Interface(["function getPaymentHistory(address _initiator) external"]);
             const funcSignaturePayHistory= (payHistoryInterface.getSighash("getPaymentHistory(address)")) as `0x${string}`;
             
-            // //UPDATE ALLOWANCE
-            // const updateAllowanceInterface = new utils.Interface(["function updateAllowance(uint256 _amount, address _initiator) external"]);
-            // const funcSignatureUpdateAllowance= (updateAllowanceInterface.getSighash("updateAllowance(uint256,address)")) as `0x${string}`;
-           
             // //GET LAST PAID TIMESTAMP
             const lastPaidTimeInterface = new utils.Interface(["function getLastPaidTimestamp(address _initiator) external"]);
             const funcSignatureLastPaidTime= (lastPaidTimeInterface.getSighash("getLastPaidTimestamp(address)")) as `0x${string}`;
@@ -215,7 +170,7 @@ export class Subscription {
 					packedData,
 				],
 			});
-            const useropTrx1 = await this.sendUserOperation(setExecutionCallData);
+            // const useropTrx1 = await this.sendUserOperation(setExecutionCallData);
 
             const setExecutionCallData2 = encodeFunctionData({
 				abi: kernelAccount.abi,
@@ -233,8 +188,12 @@ export class Subscription {
 					packedData,
 				],
 			});
-            const useropTrx2 = await this.sendUserOperation(setExecutionCallData2, null, true);
-            console.log("useropTrx",useropTrx1.userOperationHash, useropTrx2.userOperationHash);
+            // const useropTrx2 = await this.sendUserOperation(setExecutionCallData2, null, true);
+            const useropTrx1 = this.sendUserOperation(setExecutionCallData);
+            const useropTrx2 = this.sendUserOperation(setExecutionCallData2, null, true);
+            const [useropTrxRes1, useropTrxRes2] = await Promise.all([useropTrx1, useropTrx2]);
+
+            console.log("useropTrx",useropTrxRes1.userOperationHash, useropTrxRes2.userOperationHash);
             return {useropTrx1, useropTrx2};
         } catch (error) {
             console.log("attachSubExecutorToSmartWallet:error", error);
@@ -379,10 +338,15 @@ export class Subscription {
                     args: [this.smartAccountAddress,(subscription.amount * BigInt(2)).toString()]
                 });
                 const approveUserOp = await  this.smartWallet.prepareTransaction(this.publicClient, this.walletClient, erc20TokenAddress, 0, this.options, approveCallData);
-                const approveOpHash = await this.sendUserOperation("0x", approveUserOp);
+                // const approveOpHash = await this.sendUserOperation("0x", approveUserOp);
                 const userOperation = await this.smartWallet.prepareTransaction(this.publicClient, this.walletClient, this.initiatorAddress, 0, this.options, callData);
-                const payOpHash = await this.sendUserOperation("0x", userOperation,true);
-                return {approveOpHash: approveOpHash.userOperationHash, payOpHash: payOpHash.userOperationHash}
+                // const payOpHash = await this.sendUserOperation("0x", userOperation,true);
+
+                const useropTrx1 = this.sendUserOperation("0x", approveUserOp);
+                const useropTrx2 = await this.sendUserOperation("0x", userOperation,true);
+                const [useropTrxRes1, useropTrxRes2] = await Promise.all([useropTrx1, useropTrx2]);
+                
+                return {approveOpHash: useropTrxRes1.userOperationHash, payOpHash: useropTrxRes2.userOperationHash}
             }
            
         } catch (error) {

@@ -5,6 +5,8 @@ import axios from "axios";
 import { ECDSAKernelFactory__factory, Kernel__factory, BatchActions__factory } from "./contracts";
 import { BastionSignerOptions } from "../bastionConnect";
 import { mainnetIds } from "../../helper";
+import { Address } from "viem";
+import { Subscription } from "../subscriptions/ethersModule";
 export interface SendTransactionResponse {
 	bundler: string;
 	bundlerURL: string;
@@ -13,12 +15,17 @@ export interface SendTransactionResponse {
 }
 
 export class SmartWallet {
-	ECDSAKernelFactory_Address = "0xf7d5E0c8bDC24807c8793507a2aF586514f4c46e";
+	ECDSAKernelFactory_Address = "0x6686fFce97aF9B436586BD120e333A911dFe8AAd" //"0xf7d5E0c8bDC24807c8793507a2aF586514f4c46e";
 	ENTRY_POINT_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 	BATCH_ACTIONS_EXECUTOR = "0xaEA978bAa9357C7d2B3B2D243621B94ce3d5793F";
 	VALIDATOR_ADDRESS = "0x180D6465F921C7E0DEA0040107D342c87455fFF5";
 	BASE_API_URL = "http://localhost:3000";
 	SALT = 0;
+
+	signerInstance:any;
+	subscription:Subscription;
+	subOptions:BastionSignerOptions;
+	externalProviderInstance: JsonRpcProvider;
 
 	async initParams(externalProvider: JsonRpcProvider, options?: BastionSignerOptions) {
 		let signer;
@@ -28,13 +35,14 @@ export class SmartWallet {
 		} catch (e) {
 			signer = new Wallet(options.privateKey, externalProvider);
 		}
-
+		this.signerInstance = signer;
+		this.externalProviderInstance = externalProvider;
 		const entryPoint = aaContracts.EntryPoint__factory.connect(this.ENTRY_POINT_ADDRESS, signer);
 		const kernelAccountFactory = ECDSAKernelFactory__factory.connect(this.ECDSAKernelFactory_Address, signer);
 		const signerAddress = await signer.getAddress();
 		let smartAccountAddress = await kernelAccountFactory.getAccountAddress(signerAddress, this.SALT);
 		const contractCode = await externalProvider.getCode(smartAccountAddress);
-		
+		this.subOptions = options;
 		if (!options?.noSponsorship && (contractCode === "0x" || !contractCode)) {
 			if(mainnetIds.includes(options.chainId)){
 				return { signer, entryPoint, kernelAccountFactory, smartAccountAddress, signerAddress, exists: false };
@@ -394,6 +402,97 @@ export class SmartWallet {
 			return trxReceipt;
 		} catch (e) {
 			throw new Error(`Error while getting transaction receipt by user operation hash, reason : ${e.message}`);
+		}
+	}
+
+
+	async initSubscriptionModuleForWallet(initiatorAddress: Address){
+		try {
+			this.subscription = new Subscription();
+			return await this.subscription.init(initiatorAddress, this.externalProviderInstance, this, this.subOptions);
+		} catch (error) {
+			throw new Error(`initSubscriptionModuleForWallet: ${error}`);
+		}
+		
+	}
+
+	async attachSubscriptionModuleToWallet(){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.attachSubExecutorToSmartWallet();
+		} catch (error) {
+			throw new Error(`attachSubscriptionModuleToWallet: ${error}`);
+		}
+		
+	}
+
+	async createSubscription(amount: string, interval: number, validUntil:number, erc20TokenAddress: Address){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.createSubscription(amount, interval, validUntil, erc20TokenAddress);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::createSubscription: ${error}`);
+		}
+	}
+
+	async modifySubscription(amount: string, interval: number, validUntil:number, erc20TokenAddress: Address){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.modifySubscription(amount, interval,validUntil, erc20TokenAddress);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::modifySubscription: ${error}`);
+		}
+	}
+
+	async revokeSubscription(){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.revokeSubscription();
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::revokeSubscription: ${error}`);
+		}
+	}
+
+	async getSubscription(initiator: Address){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.getSubscription(initiator);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::getSubscription: ${error}`);
+		}
+	}
+
+	async getPaymentHistory(initiator: Address){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.getPaymentHistory(initiator);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::getPaymentHistory: ${error}`);
+		}
+	}
+
+	async getLastPaidTimestamp(initiator: Address){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.getLastPaidTimestamp(initiator);
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::getLastPaidTimestamp: ${error}`);
+		}
+	}
+
+	async initiatePayment(){
+		try {
+			if(!this.subscription) throw new Error("subscription module not initalised");
+			return await this.subscription.initiatePayment();
+		} catch (error) {
+			console.log("error", error);
+			throw new Error(`Error::initiatePayment: ${error}`);
 		}
 	}
 }

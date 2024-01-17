@@ -14,7 +14,7 @@ let BastionSampleNFT = "0xb390e253e43171a11a6afcb04e340fde5ae1b0a1";
 
 const DEFAULT_CONFIG: BastionSignerOptions = {
 	privateKey: process.env.PRIVATE_KEY || "",
-	rpcUrl: process.env.RPC_URL1 || "", //mumbai
+	rpcUrl: process.env.RPC_URL_MUM || "", //mumbai
 	chainId: 80001,
 	// rpcUrl: process.env.RPC_URL2 || "", // arb-goerli
 	// chainId: 421613,
@@ -290,6 +290,52 @@ describe("setupSmartAccount", () => {
 		} catch (error) {
 			console.log("error = ", error);
 		}
+	}, 70000);
+
+	//SUBSCRIPTIONS
+	it.skip("should create a subscription gaslessly", async () => {
+		let bastion = new Bastion();
+		const bastionConnect = await bastion.bastionConnect;
+		//Pass along a gasToken to use for gas
+		const { smartAccountAddress: aaAddress, exists }  = await bastionConnect.init(provider, DEFAULT_CONFIG);
+		console.log("exist",exists);
+		if(!exists){
+			const receipt = await bastionConnect.createSmartAccountByDapp();
+		}
+
+		const initiatorAddress = "0xe32D20f42fB5dA8E68A4CcdCdFfBeB337a18Af04";
+		const {attached} = await bastionConnect.initSubscriptionModuleForWallet(initiatorAddress);
+		if(!attached){
+			await bastionConnect.attachSubscriptionModuleToWallet();
+			return;
+		}
+		console.log("Subscription module initalized")
+		const amount = "100000";
+		const interval = 5; //seconds
+		const validUntil = 1710071079; //timestamp
+		const erc20TokenAddress = "0x0000000000000000000000000000000000000000";
+		//"0x8b9EAf601F4fb98f79fD62d938D15ed2a5B1EE92";
+
+		const trxhash = await bastionConnect.createSubscriptionForWallet(amount, interval, validUntil, erc20TokenAddress);
+		console.log("Trx hash:", trxhash);
+		expect(trxhash).toHaveLength(66);
+	}, 700000);
+
+
+	it("should initiate payment for a subscription gaslessly", async () => {
+		let bastion = new Bastion();
+		const bastionConnect = await bastion.bastionConnect;
+		//Pass along a gasToken to use for gas
+		const { smartAccountAddress: aaAddress, exists }  = await bastionConnect.init(provider, DEFAULT_CONFIG);
+		console.log("smartAccountAddress",aaAddress);
+		if(!exists){
+			const receipt = await bastionConnect.createSmartAccountByDapp();
+		}
+		const initiatorAddress = "0xe32D20f42fB5dA8E68A4CcdCdFfBeB337a18Af04";
+		const {attached} = await bastionConnect.initSubscriptionModuleForWallet(initiatorAddress);
+		console.log("Subscription module initalized")
+		const userOpHashes = await bastionConnect.initiatePayment();
+		console.log("userOpHashes:", userOpHashes);
 	}, 70000);
 });
 

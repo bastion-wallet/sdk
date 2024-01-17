@@ -287,7 +287,7 @@ describe("setupSmartAccount", ()=> {
 		console.log("Trx hash:", trxhash);
 		expect(trxhash).toHaveLength(66);
 	}, 700000);
-	// 1705062707
+	
 
 	it.skip("should get a subscription for given initiator", async () => {
 		let bastion = new Bastion();

@@ -7,7 +7,7 @@ import { ECDSAKernelFactory__factory, Kernel__factory, BatchActions__factory } f
 import { BastionSignerOptions } from "../bastionConnect";
 import { UserOperationStructViem } from "../viemConnect/type";
 import { getViemChain, mainnetIds } from "../../helper";
-import { Subscription } from "../subscriptions";
+import { Subscription } from "../subscriptions/viemModule";
 
 export interface SendTransactionResponse {
 	bundler: string;
