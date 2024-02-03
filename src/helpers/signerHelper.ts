@@ -125,7 +125,8 @@ export async function transactionRouting(provider: JsonRpcProvider, transaction:
 		const userOperation = await smartWallet.prepareTransaction(provider, transaction.to as string, transaction.value as number, options, transaction.data as string);
 
 		let userOpToSign = userOperation;
-
+		userOpToSign = await smartWallet.getUseropGasPrice(userOpToSign, options);
+		
 		if (!options?.noSponsorship) {
 			userOpToSign = options?.gasToken
 				? await smartWallet.getPaymasterSponsorshipERC20(chainId, userOperation, options.gasToken, options.apiKey)

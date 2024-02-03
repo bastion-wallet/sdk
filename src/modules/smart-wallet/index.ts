@@ -210,6 +210,31 @@ export class SmartWallet {
 		}
 	}
 
+	async getUseropGasPrice(userOperation:aaContracts.UserOperationStruct, options?: BastionSignerOptions): Promise<any> {
+		try {
+			const headers = {
+				"x-api-key": options.apiKey,
+				"Accept": "application/json",
+				"Content-Type": "application/json",
+			};
+	
+			const response = await fetch(`${this.BASE_API_URL}/v1/transaction/estimate-gas-price`, {
+				method: "POST",
+				body: JSON.stringify({
+					chainId: options.chainId,
+					userOperation: userOperation,
+				}),
+				headers,
+			});
+			const res = await response.json();
+			if(res.statusCode === "10001") throw new Error(res.message);
+			const userOpWithEstimateGasPrice = res?.data.userOpWithEstimatedGasPrice;
+			return userOpWithEstimateGasPrice;
+		} catch (e) {
+			throw new Error(`Error while getting estimated gas price, reason: ${e.message}`);
+		}
+	}
+
 	async prepareTransaction(externalProvider: JsonRpcProvider, to: string, value: number, options?: BastionSignerOptions, data?: string): Promise<aaContracts.UserOperationStruct> {
 		const { smartAccountAddress, entryPoint, signerAddress, signer, exists } = await this.initParams(externalProvider, options);
 		if(!exists) throw new Error("smart account doesn't exist, please create smart account first");
