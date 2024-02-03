@@ -112,7 +112,7 @@ export async function transactionRouting(publicClient: PublicClient, walletClien
 		const userOperation = await smartWallet.prepareTransaction(publicClient, walletClient, transaction.to as `0x${string}`, transaction.value as number, options, transaction.data as `0x${string}`);
 
 		let userOpToSign: UserOperationStructViem = userOperation as UserOperationStructViem;
-
+		userOpToSign = await smartWallet.getUseropGasPrice(userOpToSign, options);
 		if (!options?.noSponsorship) {
 			userOpToSign = options?.gasToken
 				? (await smartWallet.getPaymasterSponsorshipERC20(chainId, userOperation, options.gasToken, options.apiKey)) as UserOperationStructViem
