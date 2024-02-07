@@ -201,6 +201,9 @@ export class SmartWalletViem {
 			paymasterAndData: "0x",
 			signature: dummySignature, 
 		};
+
+		const useropWithgasPriceEstimate = await this.getUseropGasPrice(userOperation, options);
+		if(useropWithgasPriceEstimate) return useropWithgasPriceEstimate;
 		return userOperation;
 	}
 
@@ -246,6 +249,8 @@ export class SmartWalletViem {
 			paymasterAndData: "0x",
 			signature: "0x",
 		};
+		const useropWithgasPriceEstimate = await this.getUseropGasPrice(userOperation, options);
+		if(useropWithgasPriceEstimate) return useropWithgasPriceEstimate;
 		return userOperation;
 	}
 

@@ -154,8 +154,7 @@ export class SmartWallet {
 			});
 			const res = await response.json();
 			if(res.statusCode === "10001") throw new Error(res.message);
-			console.log("Inside getGasEstimates", res);
-			return res;
+			return res.data.userOpWithEstimatedGas;
 		} catch (error) {
 			return error;
 		}
@@ -258,7 +257,7 @@ export class SmartWallet {
 		const nonce = await entryPoint.callStatic.getNonce(smartAccountAddress, 0);
 		const dummySignature = "0x";
 
-		const userOperation = {
+		let userOperation = {
 			sender: smartAccountAddress,
 			nonce: utils.hexlify(nonce),
 			initCode: "0x",
@@ -271,7 +270,8 @@ export class SmartWallet {
 			paymasterAndData: "0x",
 			signature: dummySignature,
 		};
-		// await this.getGasEstimates(options.chainId, userOperation, options.apiKey);
+		userOperation = await this.getUseropGasPrice(userOperation, options);
+		if(userOperation) return userOperation;
 		return userOperation;
 	}
 
@@ -300,7 +300,7 @@ export class SmartWallet {
 		await this.checkExecutionSet(externalProvider, options);
 		const nonce = await entryPoint.callStatic.getNonce(smartAccountAddress, 0);
 
-		const userOperation = {
+		let userOperation = {
 			sender: smartAccountAddress,
 			nonce: utils.hexlify(nonce),
 			initCode: "0x",
@@ -313,6 +313,8 @@ export class SmartWallet {
 			paymasterAndData: "0x",
 			signature: "0x",
 		};
+		userOperation = await this.getUseropGasPrice(userOperation, options);
+		if(userOperation) return userOperation;
 		return userOperation;
 	}
 
