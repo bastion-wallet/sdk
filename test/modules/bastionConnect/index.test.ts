@@ -28,8 +28,10 @@ const DEFAULT_CONFIG: BastionSignerOptions = {
 	// chainId: 420,
 	// rpcUrl: process.env.RPC_URL7 || "", // Polygon-mainnet
 	// chainId: 137,
-	rpcUrl: process.env.RPC_URL_SEPOLIA || "", // sepolia
-	chainId: 11155111,
+	// rpcUrl: process.env.RPC_URL_SEPOLIA || "", // sepolia
+	// chainId: 11155111,
+	rpcUrl: process.env.RPC_URL_BASE || "", // Base mainnet
+	chainId: 8453,
 	apiKey: process.env.BASTION_API_KEY || "",
 };
 
@@ -205,12 +207,12 @@ describe("setupSmartAccount", () => {
 		// expect(res.hash).toHaveLength(66);
 	}, 70000);
 
-	it("should mint an NFT gasless-ly", async () => {
+	it.skip("should mint an NFT gasless-ly", async () => {
 		try {
 			let bastion = new Bastion();
 			const bastionConnect = await bastion.bastionConnect;
-			const {smartAccountAddress, exists} = await bastionConnect.init(provider, DEFAULT_CONFIG);
-			if(!exists){
+			const { smartAccountAddress, exists } = await bastionConnect.init(provider, DEFAULT_CONFIG);
+			if (!exists) {
 				// await bastionConnect.createSmartAccountByDapp();
 				await bastionConnect.createSmartAccount();
 			}
@@ -256,8 +258,8 @@ describe("setupSmartAccount", () => {
 		// console.log("Private Key: ", wallet.privateKey);
 	}, 70000);
 
-	it.skip("should send native currency to another address with gas from Smart Account", async () => {
-		// DEFAULT_CONFIG.noSponsorship = true;
+	it("should send native currency to another address with gas from Smart Account", async () => {
+		DEFAULT_CONFIG.noSponsorship = true;
 		let bastion = new Bastion();
 		const bastionConnect = await bastion.bastionConnect;
 		await bastionConnect.init(provider, DEFAULT_CONFIG);

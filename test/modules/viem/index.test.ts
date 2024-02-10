@@ -1,15 +1,15 @@
-import { createPublicClient, createWalletClient, http } from 'viem'
-import { privateKeyToAccount } from 'viem/accounts'
+import { createPublicClient, createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 import { SmartWallet } from "../../../src/modules/smart-wallet";
 import { Bastion } from "../../../src/index";
 import { describe, beforeEach, it, expect } from "@jest/globals";
 import { skip } from "node:test";
 import { ERC721_ABI } from "../../utils/ERC721_ABI";
-import {polygonMumbai, arbitrumGoerli,scrollTestnet, lineaTestnet, baseGoerli, optimismGoerli, base, sepolia} from 'viem/chains'
-import { BastionSignerOptions } from '../../../src/modules/bastionConnect';
-import { ethers } from 'ethers';
-import {abi} from "./ERC721ABI"  ;
- 
+import { polygonMumbai, arbitrumGoerli, scrollTestnet, lineaTestnet, baseGoerli, optimismGoerli, base, sepolia } from "viem/chains";
+import { BastionSignerOptions } from "../../../src/modules/bastionConnect";
+import { ethers } from "ethers";
+import { abi } from "./ERC721ABI";
+
 let smartWallet: SmartWallet;
 let client, publicClient, walletClient;
 let BastionSampleNFT = "0xb390e253e43171a11a6afcb04e340fde5ae1b0a1";
@@ -31,13 +31,15 @@ const DEFAULT_CONFIG: BastionSignerOptions = {
 	// chainId: 8453,
 	// rpcUrl: process.env.RPC_URL6 || "", // optimism-goerli
 	// chainId: 420,
-	rpcUrl: process.env.RPC_URL_SEPOLIA || "", // sepolia
-	chainId: 11155111,
+	// rpcUrl: process.env.RPC_URL_SEPOLIA || "", // sepolia
+	// chainId: 11155111,
+	rpcUrl: process.env.RPC_URL_BASE || "", // Base mainnet
+	chainId: 8453,
 	apiKey: process.env.BASTION_API_KEY || "",
 };
 
 const getViemChain = (chainId) => {
-	switch(chainId){
+	switch (chainId) {
 		case 80001:
 			return polygonMumbai;
 		case 421613:
@@ -55,24 +57,24 @@ const getViemChain = (chainId) => {
 		case 11155111:
 			return sepolia;
 	}
-}
+};
 
-const setup = async() => {
-    account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`);
-    walletClient = createWalletClient({
-		 account,
-         chain: getViemChain(DEFAULT_CONFIG.chainId), 
-        transport : http(DEFAULT_CONFIG.rpcUrl)
-	})
+const setup = async () => {
+	account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`);
+	walletClient = createWalletClient({
+		account,
+		chain: getViemChain(DEFAULT_CONFIG.chainId),
+		transport: http(DEFAULT_CONFIG.rpcUrl),
+	});
 	publicClient = createPublicClient({
 		chain: getViemChain(DEFAULT_CONFIG.chainId),
-		transport : http(DEFAULT_CONFIG.rpcUrl),
-	  });
+		transport: http(DEFAULT_CONFIG.rpcUrl),
+	});
 	return publicClient;
-};	
+};
 
-describe("setupSmartAccount", ()=> {
-    beforeEach(() => {
+describe("setupSmartAccount", () => {
+	beforeEach(() => {
 		client = setup();
 	});
 
@@ -82,7 +84,7 @@ describe("setupSmartAccount", ()=> {
 
 		//Pass along a gasToken to use for gas
 		DEFAULT_CONFIG.gasToken = "DAI";
-		const { smartAccountAddress: aaAddress }  = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
+		const { smartAccountAddress: aaAddress } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
 
 		const contractAddress = "0xEAC57C1413A2308cd03eF3CEa5c9224487825341";
 		const contractABI = ["function safeMint(address to) public", "function balanceOf(address owner) external view returns (uint256 balance)"];
@@ -91,9 +93,9 @@ describe("setupSmartAccount", ()=> {
 			account,
 			address: contractAddress,
 			abi: abi,
-			functionName: 'safeMint',
-			args: [aaAddress]
-		})
+			functionName: "safeMint",
+			args: [aaAddress],
+		});
 
 		const trxhash = await BastionViem.writeContract(request);
 		console.log("Trx hash:", trxhash);
@@ -101,16 +103,14 @@ describe("setupSmartAccount", ()=> {
 	}, 70000);
 
 	it.skip("should send native currency to another address gasless", async () => {
+		DEFAULT_CONFIG.noSponsorship = true;
 		let bastion = new Bastion();
 		const BastionViem = await bastion.viemConnect;
-		const { smartAccountAddress: aaAddress }  = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
+		const { smartAccountAddress: aaAddress } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
 
 		console.log("My address = ", aaAddress);
 
-		const res = await BastionViem.sendTransaction(
-			"0x2429EB38cB9b456160937e11aefc80879a2d2712",
-			10
-		);
+		const res = await BastionViem.sendTransaction("0x2429EB38cB9b456160937e11aefc80879a2d2712", 10);
 		console.log("Trx hash:", res);
 		expect(res).toHaveLength(66);
 	}, 50000);
@@ -120,13 +120,13 @@ describe("setupSmartAccount", ()=> {
 		// DEFAULT_CONFIG.noSponsorship = true;
 		const BastionViem = await bastion.viemConnect;
 
-		let {smartAccountAddress: aaAddress} = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
-		console.log(aaAddress)
+		let { smartAccountAddress: aaAddress } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
+		console.log(aaAddress);
 		// if(aaAddress === "0x") aaAddress = (await BastionViem.createSmartAccount()) as `0x${string}`;
-		if(aaAddress === "0x") aaAddress = (await BastionViem.createSmartAccountByDapp()) as `0x${string}`;
-		
-		const {smartAccountAddress:retaddr} = await BastionViem.getAddress();
-		expect(aaAddress).toEqual(retaddr)
+		if (aaAddress === "0x") aaAddress = (await BastionViem.createSmartAccountByDapp()) as `0x${string}`;
+
+		const { smartAccountAddress: retaddr } = await BastionViem.getAddress();
+		expect(aaAddress).toEqual(retaddr);
 
 		//by passing only msg
 		// const signature = await BastionViem.signMessage("hello world");
@@ -134,16 +134,14 @@ describe("setupSmartAccount", ()=> {
 		// //by passing account and msg
 		// const signatureByAcc = await BastionViem.signMessage("hello world", account);
 		// expect(signatureByAcc).toEqual("0x51af0110abe4ca72cdf03be9c88cc57bd261f2f68795f88efba6dd932beed61e52e96053ec73b2877ec61c1bac107d66ac3d5001f0cd2d3f3c9000c31b91e7731c");
-
 	}, 70000);
-
 
 	it.skip("should mint an NFT with gas from Smart Account", async () => {
 		let bastion = new Bastion();
 		const BastionViem = await bastion.viemConnect;
 
 		DEFAULT_CONFIG.noSponsorship = true;
-		const { smartAccountAddress: aaAddress }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
+		const { smartAccountAddress: aaAddress } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
 
 		const contractAddress = BastionSampleNFT;
 		const contractABI = ["function safeMint(address to) public"];
@@ -152,9 +150,9 @@ describe("setupSmartAccount", ()=> {
 			account,
 			address: contractAddress,
 			abi: abi,
-			functionName: 'safeMint',
-			args: [aaAddress]
-		})
+			functionName: "safeMint",
+			args: [aaAddress],
+		});
 
 		const trxhash = await BastionViem.writeContract(request);
 		console.log("Trx hash:", trxhash);
@@ -169,7 +167,7 @@ describe("setupSmartAccount", ()=> {
 		// Stackup Test ERC20 gas token  = 0x3870419Ba2BBf0127060bCB37f69A1b1C090992B
 		DEFAULT_CONFIG.gasToken = "0xd14838A68E8AFBAdE5efb411d5871ea0011AFd28";
 		// DEFAULT_CONFIG.gasToken = "0x3870419Ba2BBf0127060bCB37f69A1b1C090992B";
-		const { smartAccountAddress: aaAddress }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
+		const { smartAccountAddress: aaAddress } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
 
 		const contractAddress = BastionSampleNFT;
 		const contractABI = ["function safeMint(address to) public"];
@@ -178,20 +176,20 @@ describe("setupSmartAccount", ()=> {
 			account,
 			address: contractAddress,
 			abi: abi,
-			functionName: 'safeMint',
-			args: [aaAddress]
-		})
+			functionName: "safeMint",
+			args: [aaAddress],
+		});
 
 		const trxhash = await BastionViem.writeContract(request);
 		console.log("Trx hash:", trxhash);
 		expect(trxhash).toHaveLength(66);
 	}, 70000);
 
-    it.skip("should mint a NFT gaslessly with simulateContract method", async () => {
+	it.skip("should mint a NFT gaslessly with simulateContract method", async () => {
 		let bastion = new Bastion();
 		const BastionViem = await bastion.viemConnect;
 		//Pass along a gasToken to use for gas
-		const { smartAccountAddress: aaAddress }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
+		const { smartAccountAddress: aaAddress } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
 
 		const contractAddress = BastionSampleNFT;
 
@@ -199,23 +197,22 @@ describe("setupSmartAccount", ()=> {
 			account,
 			address: contractAddress,
 			abi: abi,
-			functionName: 'safeMint',
-			args: [aaAddress]
-		})
+			functionName: "safeMint",
+			args: [aaAddress],
+		});
 
 		const trxhash = await BastionViem.writeContract(request);
 		console.log("Trx hash:", trxhash);
 		expect(trxhash).toHaveLength(66);
-
 	}, 70000);
 
-	it("should mint a NFT gaslessly by calling standalone writeContract method", async () => {
+	it.skip("should mint a NFT gaslessly by calling standalone writeContract method", async () => {
 		let bastion = new Bastion();
 		const BastionViem = await bastion.viemConnect;
 		//Pass along a gasToken to use for gas
-		const { smartAccountAddress: aaAddress, exists }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
-		console.log("exist",exists);
-		if(!exists){
+		const { smartAccountAddress: aaAddress, exists } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
+		console.log("exist", exists);
+		if (!exists) {
 			const receipt = await BastionViem.createSmartAccountByDapp();
 		}
 		const contractAddress = BastionSampleNFT;
@@ -224,9 +221,9 @@ describe("setupSmartAccount", ()=> {
 			account,
 			address: contractAddress as `0x${string}`,
 			abi: abi,
-			functionName: 'safeMint',
+			functionName: "safeMint",
 			args: ["0x4A7EaF2a765B78B37F3D16A5eCcB1Ffd59788dBf"],
-			chain: getViemChain(DEFAULT_CONFIG.chainId)
+			chain: getViemChain(DEFAULT_CONFIG.chainId),
 		});
 		console.log("Trx hash:", trxhash);
 		expect(trxhash).toHaveLength(66);
@@ -236,7 +233,7 @@ describe("setupSmartAccount", ()=> {
 		let bastion = new Bastion();
 		const BastionViem = await bastion.viemConnect;
 		//Pass along a gasToken to use for gas
-		const { smartAccountAddress: aaAddress }  = await BastionViem.init(publicClient,walletClient, DEFAULT_CONFIG);
+		const { smartAccountAddress: aaAddress } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
 
 		const contractAddress = BastionSampleNFT;
 		// const contractAddress2 = "0xf56AEcB7F7739637FEFc0DC7Fe593BF0Bc5801bF";
@@ -244,23 +241,23 @@ describe("setupSmartAccount", ()=> {
 			account,
 			address: contractAddress as `0x${string}`,
 			abi: abi,
-			functionName: 'safeMint',
+			functionName: "safeMint",
 			args: [aaAddress],
-			chain: getViemChain(DEFAULT_CONFIG.chainId)
-		}
+			chain: getViemChain(DEFAULT_CONFIG.chainId),
+		};
 
 		const transaction2 = {
 			account,
 			address: contractAddress as `0x${string}`,
 			abi: abi,
-			functionName: 'safeMint',
+			functionName: "safeMint",
 			args: [aaAddress],
-			chain: getViemChain(DEFAULT_CONFIG.chainId)
-		}
+			chain: getViemChain(DEFAULT_CONFIG.chainId),
+		};
 
-		const trxhash = await BastionViem.writeContractBatch([transaction1,transaction2]);
+		const trxhash = await BastionViem.writeContractBatch([transaction1, transaction2]);
 		console.log("Trx hash:", trxhash);
 		expect(trxhash).toHaveLength(66);
 	}, 70000);
+});
 
-})

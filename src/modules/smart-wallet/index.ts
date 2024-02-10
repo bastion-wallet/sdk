@@ -34,13 +34,13 @@ export class SmartWallet {
 		const signerAddress = await signer.getAddress();
 		let smartAccountAddress = await kernelAccountFactory.getAccountAddress(signerAddress, this.SALT);
 		const contractCode = await externalProvider.getCode(smartAccountAddress);
-		
+
 		if (!options?.noSponsorship && (contractCode === "0x" || !contractCode)) {
-			if(mainnetIds.includes(options.chainId)){
+			if (mainnetIds.includes(options.chainId)) {
 				return { signer, entryPoint, kernelAccountFactory, smartAccountAddress, signerAddress, exists: false };
 			}
 			await this.initSmartAccount(externalProvider, smartAccountAddress, signerAddress, options.chainId, options.apiKey);
-		} else  if (contractCode === "0x" || !contractCode){
+		} else if (contractCode === "0x" || !contractCode) {
 			return { signer, entryPoint, kernelAccountFactory, smartAccountAddress, signerAddress, exists: false };
 		}
 		return { signer, entryPoint, kernelAccountFactory, smartAccountAddress, signerAddress, exists: true };
@@ -55,7 +55,7 @@ export class SmartWallet {
 		}
 
 		const signerAddress = await signer.getAddress();
-		const createTx = await kernelAccountFactory.createAccount(signerAddress, this.SALT, {gasLimit:300000});
+		const createTx = await kernelAccountFactory.createAccount(signerAddress, this.SALT, { gasLimit: 300000 });
 		await createTx.wait(1);
 
 		const smartAccount = await kernelAccountFactory.getAccountAddress(signerAddress, this.SALT);
@@ -75,33 +75,28 @@ export class SmartWallet {
 		return kernelAccountFactory.getAccountAddress(signerAddress, this.SALT);
 	}
 
-	async createSmartAccountDapp(externalProvider: JsonRpcProvider, options?: BastionSignerOptions): Promise<string>{
+	async createSmartAccountDapp(externalProvider: JsonRpcProvider, options?: BastionSignerOptions): Promise<string> {
 		const { signerAddress, smartAccountAddress, exists } = await this.initParams(externalProvider, options);
 		const headers = {
 			"x-api-key": options.apiKey,
-			'Accept': 'application/json',
-      		'Content-Type': 'application/json'
+			"Accept": "application/json",
+			"Content-Type": "application/json",
 		};
 		// If the smart account has not been deployed, deploy it
 		if (!exists) {
 			try {
-				const response = await fetch(
-					`${this.BASE_API_URL}/v1/transaction/create-account`,
-					{
-						method: "POST",
-						body: JSON.stringify(
-							{
-								chainId: options.chainId,
-								eoa: signerAddress,
-								salt: this.SALT,
-							}
-						),
-						headers
-					},
-				);
+				const response = await fetch(`${this.BASE_API_URL}/v1/transaction/create-account`, {
+					method: "POST",
+					body: JSON.stringify({
+						chainId: options.chainId,
+						eoa: signerAddress,
+						salt: this.SALT,
+					}),
+					headers,
+				});
 				const res = await response.json();
 				console.log(res);
-				if(res.statusCode === "10001") throw new Error(res.message);
+				if (res.statusCode === "10001") throw new Error(res.message);
 				return res.data.createAccountResponse.smartAccountAddress;
 			} catch (error) {
 				return error;
@@ -110,7 +105,6 @@ export class SmartWallet {
 			return smartAccountAddress;
 		}
 	}
-
 
 	async initSmartAccount(externalProvider: JsonRpcProvider, smartAccountAddress: string, signerAddress: string, chainId: number, apiKey: string): Promise<boolean> {
 		const contractCode = await externalProvider.getCode(smartAccountAddress);
@@ -128,8 +122,8 @@ export class SmartWallet {
 					headers,
 				});
 				const res = await response.json();
-				console.log("res",res);
-				if(res.statusCode === "10001") throw new Error(res.message);
+				console.log("res", res);
+				if (res.statusCode === "10001") throw new Error(res.message);
 				return false;
 			} catch (error) {
 				return error;
@@ -153,7 +147,7 @@ export class SmartWallet {
 				headers,
 			});
 			const res = await response.json();
-			if(res.statusCode === "10001") throw new Error(res.message);
+			if (res.statusCode === "10001") throw new Error(res.message);
 			return res.data.userOpWithEstimatedGas;
 		} catch (error) {
 			return error;
@@ -162,7 +156,7 @@ export class SmartWallet {
 
 	async checkExecutionSet(externalProvider: JsonRpcProvider, options?: BastionSignerOptions) {
 		const { smartAccountAddress, signer, exists } = await this.initParams(externalProvider, options);
-		if(!exists) throw new Error("smart account doesn't exist, please create smart account first");
+		if (!exists) throw new Error("smart account doesn't exist, please create smart account first");
 
 		const kernelAccount = await Kernel__factory.connect(smartAccountAddress, signer);
 
@@ -209,14 +203,14 @@ export class SmartWallet {
 		}
 	}
 
-	async getUseropGasPrice(userOperation:aaContracts.UserOperationStruct, options?: BastionSignerOptions): Promise<any> {
+	async getUseropGasPrice(userOperation: aaContracts.UserOperationStruct, options?: BastionSignerOptions): Promise<any> {
 		try {
 			const headers = {
 				"x-api-key": options.apiKey,
 				"Accept": "application/json",
 				"Content-Type": "application/json",
 			};
-	
+
 			const response = await fetch(`${this.BASE_API_URL}/v1/transaction/estimate-gas-price`, {
 				method: "POST",
 				body: JSON.stringify({
@@ -226,7 +220,7 @@ export class SmartWallet {
 				headers,
 			});
 			const res = await response.json();
-			if(res.statusCode === "10001") throw new Error(res.message);
+			if (res.statusCode === "10001") throw new Error(res.message);
 			const userOpWithEstimateGasPrice = res?.data.userOpWithEstimatedGasPrice;
 			return userOpWithEstimateGasPrice;
 		} catch (e) {
@@ -234,9 +228,38 @@ export class SmartWallet {
 		}
 	}
 
+	async getUserOperationGasLimit(userOperation: aaContracts.UserOperationStruct, options?: BastionSignerOptions): Promise<any> {
+		try {
+			const headers = {
+				"x-api-key": options.apiKey,
+				"Accept": "application/json",
+				"Content-Type": "application/json",
+			};
+
+			const response = await fetch(`${this.BASE_API_URL}/v1/transaction/estimate-gas`, {
+				method: "POST",
+				body: JSON.stringify({
+					chainId: options.chainId,
+					userOperation: userOperation,
+				}),
+				headers,
+			});
+
+			const res = await response.json();
+			console.log("Userop with gas limits = ", res);
+			return {
+				preVerificationGas: res?.data.userOpWithEstimatedGas.preVerificationGas,
+				verificationGasLimit: res?.data.userOpWithEstimatedGas.verificationGasLimit,
+				callGasLimit: res?.data.userOpWithEstimatedGas.callGasLimit,
+			};
+		} catch (e) {
+			throw new Error(`Error while getting estimated gas limit, reason: ${e.message}`);
+		}
+	}
+
 	async prepareTransaction(externalProvider: JsonRpcProvider, to: string, value: number, options?: BastionSignerOptions, data?: string): Promise<aaContracts.UserOperationStruct> {
 		const { smartAccountAddress, entryPoint, signerAddress, signer, exists } = await this.initParams(externalProvider, options);
-		if(!exists) throw new Error("smart account doesn't exist, please create smart account first");
+		if (!exists) throw new Error("smart account doesn't exist, please create smart account first");
 
 		const kernelAccount = Kernel__factory.connect(smartAccountAddress, externalProvider);
 
@@ -255,7 +278,7 @@ export class SmartWallet {
 		// }
 
 		const nonce = await entryPoint.callStatic.getNonce(smartAccountAddress, 0);
-		const dummySignature = "0x";
+		const dummySignature = "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 
 		let userOperation = {
 			sender: smartAccountAddress,
@@ -270,14 +293,19 @@ export class SmartWallet {
 			paymasterAndData: "0x",
 			signature: dummySignature,
 		};
+		const gasLimits = await this.getUserOperationGasLimit(userOperation, options);
+		userOperation.preVerificationGas = gasLimits.preVerificationGas;
+		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
+		userOperation.callGasLimit = gasLimits.callGasLimit;
+		console.log("userOperation now", userOperation);
 		userOperation = await this.getUseropGasPrice(userOperation, options);
-		if(userOperation) return userOperation;
+		if (userOperation) return userOperation;
 		return userOperation;
 	}
 
 	async prepareBatchTransaction(externalProvider: JsonRpcProvider, to: string[], data: string[], value: number[], options?: BastionSignerOptions): Promise<aaContracts.UserOperationStruct> {
 		const { smartAccountAddress, entryPoint, signerAddress, exists } = await this.initParams(externalProvider, options);
-		if(!exists) throw new Error("smart account doesn't exist, please create smart account first");
+		if (!exists) throw new Error("smart account doesn't exist, please create smart account first");
 
 		const batchActions = BatchActions__factory.connect(smartAccountAddress, externalProvider);
 
@@ -314,13 +342,13 @@ export class SmartWallet {
 			signature: "0x",
 		};
 		userOperation = await this.getUseropGasPrice(userOperation, options);
-		if(userOperation) return userOperation;
+		if (userOperation) return userOperation;
 		return userOperation;
 	}
 
 	async signUserOperation(externalProvider: JsonRpcProvider, userOperation: aaContracts.UserOperationStruct, options?: BastionSignerOptions): Promise<aaContracts.UserOperationStruct> {
 		const { signer, entryPoint, exists } = await this.initParams(externalProvider, options);
-		if(!exists) throw new Error("smart account doesn't exist, please create smart account first");
+		if (!exists) throw new Error("smart account doesn't exist, please create smart account first");
 
 		const signature = await signer.signMessage(utils.arrayify(await entryPoint.getUserOpHash(userOperation)));
 		const padding = "0x00000000";
@@ -346,7 +374,7 @@ export class SmartWallet {
 				headers,
 			});
 			const res = await response.json();
-			if(res.statusCode === "10001") throw new Error(res.message);
+			if (res.statusCode === "10001") throw new Error(res.message);
 			const updatedUserOperation = res?.data?.paymasterDataResponse?.userOperation;
 
 			return updatedUserOperation;
@@ -395,7 +423,7 @@ export class SmartWallet {
 				headers,
 			});
 			const res = await response.json();
-			if(res.statusCode === "10001") throw new Error(res.message);
+			if (res.statusCode === "10001") throw new Error(res.message);
 			const sendTransactionResponse = res?.data.sendTransactionResponse;
 			return sendTransactionResponse;
 		} catch (e) {
@@ -416,7 +444,7 @@ export class SmartWallet {
 				headers,
 			});
 			const res = await response.json();
-			if(res.statusCode === "10001") throw new Error(res.message);
+			if (res.statusCode === "10001") throw new Error(res.message);
 			const trxReceipt = res?.data.trxReceipt.receipt.transactionHash;
 			return trxReceipt;
 		} catch (e) {
