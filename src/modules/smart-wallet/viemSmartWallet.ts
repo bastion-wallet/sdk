@@ -187,7 +187,7 @@ export class SmartWalletViem {
 			}),
 		]);
 
-		const userOperation = {
+		let userOperation = {
 			sender: smartAccountAddress,
 			nonce: utils.hexlify(nonce),
 			initCode: "0x",
@@ -201,8 +201,13 @@ export class SmartWalletViem {
 			signature: dummySignature,
 		};
 
-		const useropWithgasPriceEstimate = await this.getUseropGasPrice(userOperation, options);
-		if (useropWithgasPriceEstimate) return useropWithgasPriceEstimate;
+		const gasLimits = await this.getUserOperationGasLimit(userOperation, options);
+		userOperation.preVerificationGas = gasLimits.preVerificationGas;
+		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
+		userOperation.callGasLimit = gasLimits.callGasLimit;
+		console.log("userOperation now", userOperation);
+		userOperation = await this.getUseropGasPrice(userOperation, options);
+		if (userOperation) return userOperation;
 		return userOperation;
 	}
 
@@ -242,7 +247,7 @@ export class SmartWalletViem {
 		} else {
 			nonce = await entryPoint.read.getNonce([smartAccountAddress, BigInt(0)]);
 		}
-		const userOperation = {
+		let userOperation = {
 			sender: smartAccountAddress,
 			nonce: utils.hexlify(nonce),
 			initCode: "0x",
@@ -255,8 +260,13 @@ export class SmartWalletViem {
 			paymasterAndData: "0x",
 			signature: "0x",
 		};
-		const useropWithgasPriceEstimate = await this.getUseropGasPrice(userOperation, options);
-		if (useropWithgasPriceEstimate) return useropWithgasPriceEstimate;
+		const gasLimits = await this.getUserOperationGasLimit(userOperation, options);
+		userOperation.preVerificationGas = gasLimits.preVerificationGas;
+		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
+		userOperation.callGasLimit = gasLimits.callGasLimit;
+		console.log("userOperation now", userOperation);
+		userOperation = await this.getUseropGasPrice(userOperation, options);
+		if (userOperation) return userOperation;
 		return userOperation;
 	}
 
@@ -470,6 +480,35 @@ export class SmartWalletViem {
 		});
 
 		return smartAccountAddress;
+	}
+
+	async getUserOperationGasLimit(userOperation: aaContracts.UserOperationStruct, options?: BastionSignerOptions): Promise<any> {
+		try {
+			const headers = {
+				"x-api-key": options.apiKey,
+				"Accept": "application/json",
+				"Content-Type": "application/json",
+			};
+
+			const response = await fetch(`${this.BASE_API_URL}/v1/transaction/estimate-gas`, {
+				method: "POST",
+				body: JSON.stringify({
+					chainId: options.chainId,
+					userOperation: userOperation,
+				}),
+				headers,
+			});
+
+			const res = await response.json();
+			console.log("Userop with gas limits = ", res);
+			return {
+				preVerificationGas: res?.data.userOpWithEstimatedGas.preVerificationGas,
+				verificationGasLimit: res?.data.userOpWithEstimatedGas.verificationGasLimit,
+				callGasLimit: res?.data.userOpWithEstimatedGas.callGasLimit,
+			};
+		} catch (e) {
+			throw new Error(`Error while getting estimated gas limit, reason: ${e.message}`);
+		}
 	}
 }
 
