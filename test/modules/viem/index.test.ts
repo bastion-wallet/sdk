@@ -102,8 +102,8 @@ describe("setupSmartAccount", () => {
 		expect(trxhash).toHaveLength(66);
 	}, 70000);
 
-	it.skip("should send native currency to another address gasless", async () => {
-		DEFAULT_CONFIG.noSponsorship = true;
+	it("should send native currency to another address gasless", async () => {
+		// DEFAULT_CONFIG.noSponsorship = true;
 		let bastion = new Bastion();
 		const BastionViem = await bastion.viemConnect;
 		const { smartAccountAddress: aaAddress } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);

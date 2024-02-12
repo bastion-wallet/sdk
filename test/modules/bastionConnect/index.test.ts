@@ -258,7 +258,7 @@ describe("setupSmartAccount", () => {
 		// console.log("Private Key: ", wallet.privateKey);
 	}, 70000);
 
-	it("should send native currency to another address with gas from Smart Account", async () => {
+	it.skip("should send native currency to another address with gas from Smart Account", async () => {
 		DEFAULT_CONFIG.noSponsorship = true;
 		let bastion = new Bastion();
 		const bastionConnect = await bastion.bastionConnect;

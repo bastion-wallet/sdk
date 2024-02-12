@@ -246,7 +246,6 @@ export class SmartWallet {
 			});
 
 			const res = await response.json();
-			console.log("Userop with gas limits = ", res);
 			return {
 				preVerificationGas: res?.data.userOpWithEstimatedGas.preVerificationGas,
 				verificationGasLimit: res?.data.userOpWithEstimatedGas.verificationGasLimit,
@@ -297,7 +296,6 @@ export class SmartWallet {
 		userOperation.preVerificationGas = gasLimits.preVerificationGas;
 		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
 		userOperation.callGasLimit = gasLimits.callGasLimit;
-		console.log("userOperation now", userOperation);
 		userOperation = await this.getUseropGasPrice(userOperation, options);
 		if (userOperation) return userOperation;
 		return userOperation;
@@ -345,7 +343,6 @@ export class SmartWallet {
 		userOperation.preVerificationGas = gasLimits.preVerificationGas;
 		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
 		userOperation.callGasLimit = gasLimits.callGasLimit;
-		console.log("userOperation now", userOperation);
 		userOperation = await this.getUseropGasPrice(userOperation, options);
 		if (userOperation) return userOperation;
 		return userOperation;

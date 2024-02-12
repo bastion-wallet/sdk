@@ -79,7 +79,6 @@ export class SmartWalletViem {
 					headers,
 				});
 				const res = await response.json();
-				console.log(res);
 				if (res.statusCode === "10001") throw new Error(res.message);
 				return false;
 			} catch (error) {
@@ -205,7 +204,6 @@ export class SmartWalletViem {
 		userOperation.preVerificationGas = gasLimits.preVerificationGas;
 		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
 		userOperation.callGasLimit = gasLimits.callGasLimit;
-		console.log("userOperation now", userOperation);
 		userOperation = await this.getUseropGasPrice(userOperation, options);
 		if (userOperation) return userOperation;
 		return userOperation;
@@ -264,7 +262,6 @@ export class SmartWalletViem {
 		userOperation.preVerificationGas = gasLimits.preVerificationGas;
 		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
 		userOperation.callGasLimit = gasLimits.callGasLimit;
-		console.log("userOperation now", userOperation);
 		userOperation = await this.getUseropGasPrice(userOperation, options);
 		if (userOperation) return userOperation;
 		return userOperation;
@@ -428,7 +425,6 @@ export class SmartWalletViem {
 					headers,
 				});
 				const res = await response.json();
-				console.log(res);
 				if (res.statusCode === "10001") throw new Error(res.message);
 				return res.data.createAccountResponse.smartAccountAddress;
 			} catch (error) {
@@ -500,7 +496,6 @@ export class SmartWalletViem {
 			});
 
 			const res = await response.json();
-			console.log("Userop with gas limits = ", res);
 			return {
 				preVerificationGas: res?.data.userOpWithEstimatedGas.preVerificationGas,
 				verificationGasLimit: res?.data.userOpWithEstimatedGas.verificationGasLimit,
