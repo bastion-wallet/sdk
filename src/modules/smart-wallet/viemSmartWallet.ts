@@ -202,10 +202,9 @@ export class SmartWalletViem {
 
 		const gasLimits = await this.getUserOperationGasLimit(userOperation, options);
 		userOperation.preVerificationGas = gasLimits.preVerificationGas;
-		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
+		userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
 		userOperation.callGasLimit = gasLimits.callGasLimit;
 		userOperation = await this.getUseropGasPrice(userOperation, options);
-		if (userOperation) return userOperation;
 		return userOperation;
 	}
 
@@ -260,7 +259,7 @@ export class SmartWalletViem {
 		};
 		const gasLimits = await this.getUserOperationGasLimit(userOperation, options);
 		userOperation.preVerificationGas = gasLimits.preVerificationGas;
-		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
+		userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
 		userOperation.callGasLimit = gasLimits.callGasLimit;
 		userOperation = await this.getUseropGasPrice(userOperation, options);
 		if (userOperation) return userOperation;
