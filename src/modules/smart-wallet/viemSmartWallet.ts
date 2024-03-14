@@ -200,11 +200,11 @@ export class SmartWalletViem {
 			signature: dummySignature,
 		};
 
-		const gasLimits = await this.getUserOperationGasLimit(userOperation, options);
-		userOperation.preVerificationGas = gasLimits.preVerificationGas;
-		userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
-		userOperation.callGasLimit = gasLimits.callGasLimit;
-		userOperation = await this.getUseropGasPrice(userOperation, options);
+		// const gasLimits = await this.getUserOperationGasLimit(userOperation, options);
+		// userOperation.preVerificationGas = gasLimits.preVerificationGas;
+		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
+		// userOperation.callGasLimit = gasLimits.callGasLimit;
+		// userOperation = await this.getUseropGasPrice(userOperation, options);
 		return userOperation;
 	}
 
@@ -257,12 +257,12 @@ export class SmartWalletViem {
 			paymasterAndData: "0x",
 			signature: "0x",
 		};
-		const gasLimits = await this.getUserOperationGasLimit(userOperation, options);
-		userOperation.preVerificationGas = gasLimits.preVerificationGas;
-		userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
-		userOperation.callGasLimit = gasLimits.callGasLimit;
-		userOperation = await this.getUseropGasPrice(userOperation, options);
-		if (userOperation) return userOperation;
+		// const gasLimits = await this.getUserOperationGasLimit(userOperation, options);
+		// userOperation.preVerificationGas = gasLimits.preVerificationGas;
+		// userOperation.verificationGasLimit = gasLimits.verificationGasLimit;
+		// userOperation.callGasLimit = gasLimits.callGasLimit;
+		// userOperation = await this.getUseropGasPrice(userOperation, options);
+		// if (userOperation) return userOperation;
 		return userOperation;
 	}
 
@@ -495,11 +495,13 @@ export class SmartWalletViem {
 			});
 
 			const res = await response.json();
-			return {
-				preVerificationGas: res?.data.userOpWithEstimatedGas.preVerificationGas,
-				verificationGasLimit: res?.data.userOpWithEstimatedGas.verificationGasLimit,
-				callGasLimit: res?.data.userOpWithEstimatedGas.callGasLimit,
-			};
+			if(res && res?.data && res?.data.userOpWithEstimatedGas)
+				return {
+					preVerificationGas: res?.data.userOpWithEstimatedGas.preVerificationGas,
+					verificationGasLimit: res?.data.userOpWithEstimatedGas.verificationGasLimit,
+					callGasLimit: res?.data.userOpWithEstimatedGas.callGasLimit,
+				};
+			else throw new Error(`Error while getting estimated gas limit, reason: ${res}`);
 		} catch (e) {
 			throw new Error(`Error while getting estimated gas limit, reason: ${e.message}`);
 		}
