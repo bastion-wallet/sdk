@@ -152,7 +152,6 @@ export class SmartWalletViem {
 	): Promise<aaContracts.UserOperationStruct> {
 		const { smartAccountAddress, entryPoint, clientAddress, exists } = await this.initParams(walletClient, publicClient, options);
 		if (!exists) throw new Error("smart account doesn't exist, please create smart account first");
-
 		const kernelAccount = getContract({
 			address: smartAccountAddress,
 			abi: Kernel__factory.abi,
@@ -178,13 +177,38 @@ export class SmartWalletViem {
 		} else {
 			nonce = await entryPoint.read.getNonce([smartAccountAddress, BigInt(0)]);
 		}
-		const dummySignature = utils.hexConcat([
-			"0x00000000",
-			await walletClient.signMessage({
-				account: walletClient.account,
-				message: { raw: utils.keccak256("0xdead") as `0x${string}` },
-			}),
-		]);
+
+
+		const domain = {
+			version: '1',
+			chainId: options?.chainId,
+			verifyingContract: smartAccountAddress,
+		} 
+		
+		const types = {
+			Message: [
+			  { name: 'message', type: 'string' },
+			]
+		} 
+
+		// const dummySignature = utils.hexConcat([
+		// 	"0x00000000",
+		// 	await walletClient.signMessage({
+		// 		account: walletClient.account,
+		// 		message: { raw: utils.keccak256("0xdead") as `0x${string}` },
+		// 	}),
+		// ]);
+
+		const dummySignature = await walletClient.signTypedData({
+			account: walletClient.account,
+			primaryType: 'Message',
+			domain,
+			types,
+			message: {
+			  message: 'Hello, Bob!',
+			},
+		  })
+		  
 
 		let userOperation = {
 			sender: smartAccountAddress,
