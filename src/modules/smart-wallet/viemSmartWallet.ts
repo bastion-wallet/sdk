@@ -199,15 +199,18 @@ export class SmartWalletViem {
 		// 	}),
 		// ]);
 
-		const dummySignature = await walletClient.signTypedData({
-			account: walletClient.account,
-			primaryType: 'Message',
-			domain,
-			types,
-			message: {
-			  message: 'Hello, Bob!',
-			},
-		  })
+		const dummySignature =  utils.hexConcat([
+				"0x00000000",
+				await walletClient.signTypedData({
+				account: walletClient.account,
+				primaryType: 'Message',
+				domain,
+				types,
+				message: {
+					message: 'Dummy message signauture required to get paymaster sponsorship',
+					},
+				}),
+			]);
 		  
 
 		let userOperation = {
