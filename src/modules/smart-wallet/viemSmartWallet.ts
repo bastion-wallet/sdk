@@ -207,7 +207,7 @@ export class SmartWalletViem {
 				domain,
 				types,
 				message: {
-					message: 'Dummy message signauture required to get paymaster sponsorship',
+					message: 'Dummy message',
 					},
 				}),
 			]);
