@@ -17,6 +17,8 @@ export const getChainName = async (chainId) => {
 			return "scroll";
 		case 80001:
 			return "polygon-mumbai";
+		case 80002: 
+			return "polygon-amoy";
 		case 421613:
 			return "arbitrum-goerli";
 		case 534353:
@@ -98,6 +100,8 @@ export const getViemChain = async (chainId: number) => {
 			return goerli;
 		case 11155111:
 			return sepolia;
+		case 80002:
+			return polygonAmoy;
 	}
 };
 
@@ -135,3 +139,30 @@ const scroll = /*#__PURE__*/ defineChain({
 	testnet: false,
 });
 
+export const polygonAmoy = /*#__PURE__*/ defineChain({
+	id: 80_002,
+	name: 'Polygon Amoy',
+	network: 'polygon-amoy',
+	nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+	rpcUrls: {
+	  default: {
+		http: ['https://rpc-amoy.polygon.technology'],
+	  },
+	  public: {
+		http: ['https://rpc-amoy.polygon.technology'],
+	  }
+	},
+	blockExplorers: {
+	  default: {
+		name: 'OK LINK',
+		url: 'https://www.oklink.com/amoy',
+	  },
+	},
+	contracts: {
+	  multicall3: {
+		address: '0xca11bde05977b3631167028862be2a173976ca11',
+		blockCreated: 3127388,
+	  },
+	},
+	testnet: true,
+  });

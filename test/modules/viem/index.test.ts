@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http } from "viem";
+import { Chain, createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { SmartWallet } from "../../../src/modules/smart-wallet";
 import { Bastion } from "../../../src/index";
@@ -6,6 +6,7 @@ import { describe, beforeEach, it, expect } from "@jest/globals";
 import { skip } from "node:test";
 import { ERC721_ABI } from "../../utils/ERC721_ABI";
 import { polygonMumbai, arbitrumGoerli, scrollTestnet, lineaTestnet, baseGoerli, optimismGoerli, base, sepolia } from "viem/chains";
+import { polygonAmoy } from "../../../src/helper";
 import { BastionSignerOptions } from "../../../src/modules/bastionConnect";
 import { ethers } from "ethers";
 import { abi } from "./ERC721ABI";
@@ -17,9 +18,11 @@ let account;
 
 const DEFAULT_CONFIG: BastionSignerOptions = {
 	privateKey: process.env.PRIVATE_KEY || "",
+	rpcUrl: process.env.RPC_URL_AMOY || "",
+	chainId: 80002,
 	// rpcUrl: process.env.RPC_URL1 || "", //mumbai
 	// chainId: 80001,
-	// rpcUrl: process.env.RPC_URL2 || "", // arb-goerli
+	// rpcUrl: process.env.RPC_URL_ARB_GOERLI || "", // arb-goerli
 	// chainId: 421613,
 	// rpcUrl: process.env.RPC_URL3 || "", // scroll
 	// chainId: 534353,
@@ -33,13 +36,15 @@ const DEFAULT_CONFIG: BastionSignerOptions = {
 	// chainId: 420,
 	// rpcUrl: process.env.RPC_URL_SEPOLIA || "", // sepolia
 	// chainId: 11155111,
-	rpcUrl: process.env.RPC_URL_BASE || "", // Base mainnet
-	chainId: 8453,
+	// rpcUrl: process.env.RPC_URL_BASE || "", // Base mainnet
+	// chainId: 8453,
 	apiKey: process.env.BASTION_API_KEY || "",
 };
 
 const getViemChain = (chainId) => {
 	switch (chainId) {
+		case 80002:
+			return polygonAmoy;
 		case 80001:
 			return polygonMumbai;
 		case 421613:
@@ -106,8 +111,11 @@ describe("setupSmartAccount", () => {
 		// DEFAULT_CONFIG.noSponsorship = true;
 		let bastion = new Bastion();
 		const BastionViem = await bastion.viemConnect;
-		const { smartAccountAddress: aaAddress } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
-
+		const { smartAccountAddress: aaAddress, exists } = await BastionViem.init(publicClient, walletClient, DEFAULT_CONFIG);
+		console.log("exists",exists)
+		if(!exists){
+			await BastionViem.createSmartAccountByDapp() as `0x${string}`;
+		}
 		console.log("My address = ", aaAddress);
 
 		const res = await BastionViem.sendTransaction("0x2429EB38cB9b456160937e11aefc80879a2d2712", 10);
