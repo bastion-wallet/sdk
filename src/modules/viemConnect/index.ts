@@ -96,7 +96,7 @@ export class ViemConnect {
             const res = await transactionRouting(this.publicClient, this.walletClient, transaction, this.options);
             return res?.hash as `0x${string}` ;
         } catch (error) {
-            return error
+            throw new Error(error)
         }
     }
 
@@ -139,7 +139,7 @@ export class ViemConnect {
             const res = await batchTransactionRouting(this.publicClient, this.walletClient, transactions, this.options);
             return res?.hash as `0x${string}` ;
         } catch (error) {
-            return error
+            throw new Error(error)
         }
     }
 
